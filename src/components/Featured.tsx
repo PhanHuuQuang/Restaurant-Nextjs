@@ -1,8 +1,9 @@
-import { featuredProducts } from "@/data";
+import { getFeaturedProducts } from "@/api/products";
 import Image from "next/image";
 import React from "react";
 
-const Featured = () => {
+const Featured = async () => {
+  const featuredProducts = await getFeaturedProducts();
   return (
     <div className="w-full overflow-x-scroll text-red-500">
       {/* WRAPPER */}

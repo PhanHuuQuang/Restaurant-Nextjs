@@ -1,12 +1,17 @@
-import { pizzas } from "@/data";
+import { getCategory } from "@/api/categories";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
-const CategoryPage = () => {
+const CategoryPage = async ({
+  params,
+}: {
+  params: { category: string };
+}) => {
+  const { products } = await getCategory(params.category);
   return (
     <div className="flex flex-wrap text-red-500">
-      {pizzas.map((item) => (
+      {products.map((item) => (
         <Link
           className="w-full h-[60vh] border-r-2 border-b-2 border-red-500 sm:w-1/2 lg:w-1/3 p-4 flex flex-col justify-between group hover:bg-fuchsia-50"
           href={`/product/${item.id}`}
