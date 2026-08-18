@@ -1,99 +1,122 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Restaurant Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS REST API for the Restaurant project. It serves categories and products to the [frontend](../frontend/README.md), uses Prisma as ORM and PostgreSQL 16 (via Docker) as the database.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tech Stack
 
-## Description
+- [NestJS](https://docs.nestjs.com) 10 (framework)
+- [Prisma](https://www.prisma.io/docs) 6 (ORM + migrations + seed)
+- PostgreSQL 16 (Docker, see `docker-compose.yml`)
+- Swagger for API documentation
+- class-validator / class-transformer for request validation
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Project Structure
 
-## Project setup
-
-```bash
-$ npm install
+```
+backend/
+├── docker-compose.yml    # PostgreSQL container definition
+├── .env                  # Environment variables (create it, see below)
+├── prisma/
+│   ├── schema.prisma     # Database models (Category, Product)
+│   ├── migrations/       # Applied SQL migrations
+│   └── seed.ts           # Demo data seeder
+└── src/
+    ├── main.ts           # App bootstrap (CORS, validation, Swagger)
+    ├── app.module.ts     # Root module
+    ├── prisma/           # PrismaService (PrismaModule)
+    ├── categories/       # Category CRUD module
+    └── products/         # Product CRUD module
 ```
 
-## Compile and run the project
+## Prerequisites
+
+- Node.js >= 18 and npm
+- Docker (for the database)
+
+## Setup (first time)
+
+Run all commands from the `backend/` directory.
+
+### 1. Install dependencies
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+### 2. Start the database
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+docker compose up -d
 ```
 
-## Deployment
+This starts a PostgreSQL 16 container (`restaurant-postgres`) with user `restaurant`, password `restaurant`, database `restaurant`.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### 3. Create the `.env` file
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+```env
+DATABASE_URL="postgresql://restaurant:restaurant@localhost:5432/restaurant"
+```
+
+### 4. Run migrations and generate the Prisma client
 
 ```bash
-$ npm install -g mau
-$ mau deploy
+npx prisma migrate dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 5. Seed demo data
 
-## Resources
+```bash
+npx prisma db seed
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### 6. Start the dev server
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+npm run start:dev
+```
 
-## Support
+The API now runs at `http://localhost:3000`.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+> Keep the backend on port 3000 — the frontend expects the API there by default.
+> If you must change it, set `PORT` in `.env` and update `API_BASE_URL` in the frontend.
 
-## Stay in touch
+## API
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Interactive documentation (Swagger): `http://localhost:3000/api`
 
-## License
+| Method | Endpoint             | Description                    |
+| ------ | -------------------- | ------------------------------ |
+| POST   | `/categories`        | Create a category              |
+| GET    | `/categories`        | List all categories            |
+| GET    | `/categories/:slug`  | Get a category with products   |
+| PATCH  | `/categories/:slug`  | Update a category              |
+| DELETE | `/categories/:slug`  | Delete a category              |
+| POST   | `/products`          | Create a product               |
+| GET    | `/products`          | List products (`?categoryId=`) |
+| GET    | `/products/featured` | List featured products         |
+| GET    | `/products/:id`      | Get one product                |
+| PATCH  | `/products/:id`      | Update a product               |
+| DELETE | `/products/:id`      | Delete a product               |
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Useful Commands
+
+```bash
+npm run start:dev        # Dev server with watch mode
+npm run build            # Build to dist/
+npm run start:prod       # Run the production build
+npm run lint             # ESLint (with auto-fix)
+npm run format           # Prettier
+npm run test             # Unit tests (Jest)
+
+npx prisma studio        # Browse the database in the browser
+npx prisma migrate dev   # Apply migrations in development
+npx prisma db seed       # Re-seed demo data
+```
+
+## Troubleshooting
+
+- **`P1000: Authentication failed`** — the credentials or port in `DATABASE_URL`
+  do not match the Docker container. Verify with: `docker inspect restaurant-postgres`.
+- **`Environment variable not found: DATABASE_URL`** — the `.env` file is missing
+  or you are running the command outside the `backend/` directory.
+- **Port 5432 already in use** — see the note in step 3 (use 5433).

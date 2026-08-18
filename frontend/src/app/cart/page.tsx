@@ -1,5 +1,4 @@
 import Image from "next/image";
-import React from "react";
 
 const CartPage = () => {
   return (
@@ -8,7 +7,13 @@ const CartPage = () => {
       <div className="h-1/2 p-4 flex flex-col justify-center overflow-y-scroll lg:h-full lg:w-2/3 2xl:w-1/2 lg:px-10 xl:px-30">
         {/* SINGLE ITEM */}
         <div className="flex items-center justify-between mb-4">
-          <Image src="/temporary/p1.png" alt="" width={100} height={100} />
+          <Image
+            className="w-20 h-20 lg:w-[120px] lg:h-[120px]"
+            src="/temporary/p1.png"
+            alt="Cart Item"
+            width={100}
+            height={100}
+          />
           <div className="">
             <h1 className="uppercase text-xl font-bold">sicilian</h1>
             <span>Large</span>
@@ -17,7 +22,13 @@ const CartPage = () => {
           <span className="cursor-pointer">X</span>
         </div>
         <div className="flex items-center justify-between mb-4">
-          <Image src="/temporary/p1.png" alt="" width={100} height={100} />
+          <Image
+            className="w-20 h-20 lg:w-[120px] lg:h-[120px]"
+            src="/temporary/p1.png"
+            alt="Cart Item"
+            width={100}
+            height={100}
+          />
           <div className="">
             <h1 className="uppercase text-xl font-bold">sicilian</h1>
             <span>Large</span>
@@ -26,7 +37,13 @@ const CartPage = () => {
           <span className="cursor-pointer">X</span>
         </div>
         <div className="flex items-center justify-between mb-4">
-          <Image src="/temporary/p1.png" alt="" width={100} height={100} />
+          <Image
+            className="w-20 h-20 lg:w-[120px] lg:h-[120px]"
+            src="/temporary/p1.png"
+            alt="Cart Item"
+            width={100}
+            height={100}
+          />
           <div className="">
             <h1 className="uppercase text-xl font-bold">sicilian</h1>
             <span>Large</span>

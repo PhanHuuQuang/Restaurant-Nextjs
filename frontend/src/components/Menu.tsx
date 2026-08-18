@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
+import { useState } from "react";
 import CartIcon from "./CartIcon";
 
 const links = [
@@ -20,18 +20,18 @@ const Menu = () => {
     <div>
       {!open ? (
         <Image
-          className="cursor-pointer"
+          className="cursor-pointer w-5 h-5"
           src="/open.png"
-          alt=""
+          alt="Open Menu"
           width={20}
           height={20}
           onClick={() => setOpen(true)}
         />
       ) : (
         <Image
-          className="cursor-pointer"
+          className="cursor-pointer w-5 h-5"
           src="/close.png"
-          alt=""
+          alt="Close Menu"
           width={20}
           height={20}
           onClick={() => setOpen(false)}
@@ -53,9 +53,7 @@ const Menu = () => {
               Orders
             </Link>
           )}
-          <Link href="/cart" onClick={() => setOpen(false)}>
-            <CartIcon />
-          </Link>
+          <CartIcon onClick={() => setOpen(false)} />
         </div>
       )}
     </div>

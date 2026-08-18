@@ -1,6 +1,5 @@
 import { getFeaturedProducts } from "@/api/products";
 import Image from "next/image";
-import React from "react";
 
 const Featured = async () => {
   const featuredProducts = await getFeaturedProducts();

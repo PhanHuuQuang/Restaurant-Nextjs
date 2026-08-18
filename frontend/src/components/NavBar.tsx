@@ -1,4 +1,3 @@
-import React from "react";
 import Menu from "./Menu";
 import Link from "next/link";
 import CartIcon from "./CartIcon";
@@ -16,7 +15,7 @@ const NavBar = () => {
       </div>
       {/* LOGO */}
       <div className="text-xl md:font-bold md:text-center flex-1">
-        <Link href="/">QPhan</Link>
+        <Link href="/">MyRestaurant</Link>
       </div>
       {/* MOBILE MENU */}
       <div className="md:hidden">

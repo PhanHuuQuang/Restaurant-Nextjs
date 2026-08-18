@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const data = [
   {
@@ -27,7 +27,7 @@ const Slider = () => {
     const interval = setInterval(
       () =>
         setCurrentSlide((prev) => (prev === data.length - 1 ? 0 : prev + 1)),
-      2000
+      2000,
     );
     return () => clearInterval(interval);
   }, []);

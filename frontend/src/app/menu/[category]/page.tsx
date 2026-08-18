@@ -1,14 +1,13 @@
 import { getCategory } from "@/api/categories";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
 
 const CategoryPage = async ({
   params,
 }: {
-  params: { category: string };
+  params: Promise<{ category: string }>;
 }) => {
-  const { products } = await getCategory(params.category);
+  const { products } = await getCategory((await params).category);
   return (
     <div className="flex flex-wrap text-red-500">
       {products.map((item) => (

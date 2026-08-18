@@ -1,14 +1,13 @@
 import { getProduct } from "@/api/products";
 import Price from "@/components/Price";
 import Image from "next/image";
-import React from "react";
 
 const SingleProductPage = async ({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) => {
-  const singleProduct = await getProduct(Number(params.id));
+  const singleProduct = await getProduct(Number((await params).id));
   return (
     <div className="p-4 lg:px-20 xl:px-40 h-screen flex flex-col justify-around text-red-500 md:flex-row md:gap-8 md:items-center">
       {/* IMAGE CONTAINER */}
@@ -18,6 +17,7 @@ const SingleProductPage = async ({
             src={singleProduct.img}
             alt=""
             fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-contain"
           />
         </div>

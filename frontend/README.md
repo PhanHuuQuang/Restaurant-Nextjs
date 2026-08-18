@@ -1,34 +1,90 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Restaurant Frontend
 
-## Getting Started
+Next.js customer-facing app for the Restaurant project: menu, featured products, offers, cart and login. It fetches all data from the [backend API](../backend/README.md).
 
-First, run the development server:
+## Tech Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+- [Next.js](https://nextjs.org/docs) 16 (App Router, Turbopack, `src/app`)
+- React 19 + TypeScript
+- Tailwind CSS 3
+- ESLint 9 (flat config) with `eslint-config-next`
+- react-countdown (offer timer)
+
+## Project Structure
+
+```
+frontend/
+├── eslint.config.mjs       # ESLint flat config (eslint-config-next)
+├── tailwind.config.js
+├── public/temporary/        # Product / category images
+└── src/
+    ├── app/                 # App Router pages
+    │   ├── page.tsx         # Home (slider, featured, offers)
+    │   ├── menu/            # Full menu + menu/[category]
+    │   ├── product/[id]/    # Product detail page
+    │   ├── cart/            # Cart
+    │   ├── orders/          # Orders
+    │   └── login/           # Login
+    ├── components/          # NavBar, Featured, Slider, Offer, Menu, Price, ...
+    ├── api/                 # Typed API client for the backend
+    │   ├── client.ts        # Base fetch wrapper (API_BASE_URL)
+    │   ├── categories.ts    # Category endpoints
+    │   ├── products.ts      # Product endpoints
+    │   └── types.ts         # Shared types (Product, Category, ...)
+    └── hook/                # Custom React hooks
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Prerequisites
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Node.js >= 18 and npm
+- The [backend](../backend/README.md) must be installed and **running on port 3000**
+  (`http://localhost:3000`), including the database seed, otherwise all pages
+  will fail to load data.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Setup
 
-## Learn More
+Run all commands from the `frontend/` directory.
 
-To learn more about Next.js, take a look at the following resources:
+### 1. Install dependencies
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm install
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+### 2. Start the dev server on port 3001
 
-## Deploy on Vercel
+The backend already occupies port 3000, so the frontend must use another port:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run dev -- -p 3001
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Open `http://localhost:3001` in your browser.
+
+### (Optional) Point to a different backend URL
+
+The API base URL defaults to `http://localhost:3000`. To change it, start the
+dev server with:
+
+```bash
+API_BASE_URL=http://localhost:4000 npm run dev -- -p 3001
+```
+
+## Useful Commands
+
+```bash
+npm run dev        # Dev server (add -- -p 3001 to avoid clashing with the backend)
+npm run build      # Production build (Turbopack)
+npm run start      # Run the production build
+npm run lint       # ESLint (flat config, eslint-config-next)
+```
+
+> Note: `next lint` no longer exists in Next.js 16 — the `lint` script runs
+> `eslint .` directly. Keep ESLint on major version 9 (`eslint-config-next@16`
+> is not compatible with ESLint 10 yet).
+
+## Notes
+
+- The API client (`src/api/client.ts`) throws an `ApiError` (with HTTP status)
+  on non-2xx responses; pages fetch data with `cache: "no-store"` requests.
+- Product images referenced by the database seed live in `public/temporary/`.
