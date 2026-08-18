@@ -11,11 +11,11 @@ export class UpdateCategoryDto {
 
   @IsOptional()
   @IsString()
-  desc?: string;
+  description?: string;
 
   @IsOptional()
   @IsString()
-  img?: string;
+  image?: string;
 
   @IsOptional()
   @IsString()

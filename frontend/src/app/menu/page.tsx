@@ -13,13 +13,13 @@ const MenuPage = async () => {
             href={`/menu/${category.slug}`}
             key={category.id}
             className="w-full h-1/3 bg-cover p-6 md:h-[70%]"
-            style={{ backgroundImage: `url(${category.img})` }}
+            style={{ backgroundImage: `url(${category.image})` }}
           >
             <div className={`w-1/2 ${color.text}`}>
               <h1 className="uppercase font-bold text-2xl md:text-3xl">
                 {category.title}
               </h1>
-              <p className="text-sm my-1">{category.desc}</p>
+              <p className="text-sm my-1">{category.description}</p>
               <button
                 className={`hidden xl:block py-2 px-4 rounded-md ${color.button}`}
               >

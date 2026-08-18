@@ -1,14 +1,20 @@
-import { PrismaClient } from '@prisma/client';
+import 'dotenv/config';
+import { PrismaClient } from '../prisma/generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const prisma = new PrismaClient({ adapter });
 
-const options = [
+const defaultOptions = [
   { title: 'Small', additionalPrice: 0 },
   { title: 'Medium', additionalPrice: 4 },
   { title: 'Large', additionalPrice: 6 },
 ];
 
 async function main() {
+  await prisma.orderItem.deleteMany();
+  await prisma.order.deleteMany();
+  await prisma.productOption.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
 
@@ -16,8 +22,9 @@ async function main() {
     data: {
       slug: 'pizzas',
       title: 'Cheesy Pizzas',
-      desc: 'Pizza Paradise: Irresistible slices, mouthwatering toppings, and cheesy perfection.',
-      img: '/temporary/m3.png',
+      description:
+        'Pizza Paradise: Irresistible slices, mouthwatering toppings, and cheesy perfection.',
+      image: '/temporary/m3.png',
       color: 'white',
     },
   });
@@ -26,8 +33,9 @@ async function main() {
     data: {
       slug: 'burgers',
       title: 'Juicy Burgers',
-      desc: 'Burger Bliss: Juicy patties, bold flavors, and gourmet toppings galore.',
-      img: '/temporary/m2.png',
+      description:
+        'Burger Bliss: Juicy patties, bold flavors, and gourmet toppings galore.',
+      image: '/temporary/m2.png',
       color: 'black',
     },
   });
@@ -36,8 +44,9 @@ async function main() {
     data: {
       slug: 'pastas',
       title: 'Italian Pastas',
-      desc: 'Savor the taste of perfection with our exquisite Italian handmade pasta menu.',
-      img: '/temporary/m1.png',
+      description:
+        'Savor the taste of perfection with our exquisite Italian handmade pasta menu.',
+      image: '/temporary/m1.png',
       color: 'white',
     },
   });
@@ -156,9 +165,21 @@ async function main() {
 
   for (const product of products) {
     await prisma.product.create({
-      data: { ...product, options },
+      data: {
+        title: product.title,
+        desc: product.desc,
+        img: product.img,
+        price: product.price,
+        categoryId: product.categoryId,
+        isFeatured: product.isFeatured ?? false,
+        options: {
+          create: defaultOptions,
+        },
+      },
     });
   }
+
+  console.log('Seed completed successfully!');
 }
 
 main()

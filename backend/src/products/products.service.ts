@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -8,33 +7,43 @@ import { UpdateProductDto } from './dto/update-product.dto';
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createProductDto: CreateProductDto) {
-    const data: Prisma.ProductUncheckedCreateInput = {
-      ...createProductDto,
-      options: createProductDto.options as unknown as Prisma.InputJsonValue,
-    };
+  async create(createProductDto: CreateProductDto) {
+    const { options, ...productData } = createProductDto;
 
-    return this.prisma.product.create({ data });
+    return this.prisma.product.create({
+      data: {
+        ...productData,
+        options: options
+          ? { create: options.map((o) => ({ title: o.title, additionalPrice: o.additionalPrice })) }
+          : undefined,
+      },
+      include: { options: true },
+    });
   }
 
   findAll(categoryId?: number) {
     return this.prisma.product.findMany({
-      where: categoryId ? { categoryId } : undefined,
+      where: {
+        deletedAt: null,
+        ...(categoryId ? { categoryId } : {}),
+      },
+      include: { options: true },
       orderBy: { createdAt: 'asc' },
     });
   }
 
   findFeatured() {
     return this.prisma.product.findMany({
-      where: { isFeatured: true },
+      where: { isFeatured: true, deletedAt: null },
+      include: { options: true },
       orderBy: { createdAt: 'asc' },
     });
   }
 
   async findOne(id: number) {
-    const product = await this.prisma.product.findUnique({
-      where: { id },
-      include: { category: true },
+    const product = await this.prisma.product.findFirst({
+      where: { id, deletedAt: null },
+      include: { category: true, options: true },
     });
 
     if (!product) {
@@ -44,19 +53,32 @@ export class ProductsService {
     return product;
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    const data: Prisma.ProductUncheckedUpdateInput = {
-      ...updateProductDto,
-      options: updateProductDto.options as unknown as Prisma.InputJsonValue,
-    };
+  async update(id: number, updateProductDto: UpdateProductDto) {
+    await this.findOne(id);
+
+    const { options, ...productData } = updateProductDto;
+
+    if (options) {
+      await this.prisma.productOption.deleteMany({ where: { productId: id } });
+    }
 
     return this.prisma.product.update({
       where: { id },
-      data,
+      data: {
+        ...productData,
+        ...(options
+          ? { options: { create: options.map((o) => ({ title: o.title, additionalPrice: o.additionalPrice })) } }
+          : {}),
+      },
+      include: { options: true },
     });
   }
 
-  remove(id: number) {
-    return this.prisma.product.delete({ where: { id } });
+  async remove(id: number) {
+    await this.findOne(id);
+    return this.prisma.product.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 }

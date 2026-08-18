@@ -13,14 +13,15 @@ export class CategoriesService {
 
   findAll() {
     return this.prisma.category.findMany({
+      where: { deletedAt: null },
       orderBy: { createdAt: 'asc' },
     });
   }
 
   async findOne(slug: string) {
-    const category = await this.prisma.category.findUnique({
-      where: { slug },
-      include: { products: true },
+    const category = await this.prisma.category.findFirst({
+      where: { slug, deletedAt: null },
+      include: { products: { where: { deletedAt: null } } },
     });
 
     if (!category) {
@@ -37,7 +38,11 @@ export class CategoriesService {
     });
   }
 
-  remove(slug: string) {
-    return this.prisma.category.delete({ where: { slug } });
+  async remove(slug: string) {
+    await this.findOne(slug);
+    return this.prisma.category.update({
+      where: { slug },
+      data: { deletedAt: new Date() },
+    });
   }
 }

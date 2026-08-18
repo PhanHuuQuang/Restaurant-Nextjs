@@ -1,4 +1,5 @@
 export type ProductOption = {
+  id: number;
   title: string;
   additionalPrice: number;
 };
@@ -9,7 +10,7 @@ export type Product = {
   desc: string | null;
   img: string | null;
   price: number;
-  options: ProductOption[] | null;
+  options: ProductOption[];
   isFeatured: boolean;
   categoryId: number;
   createdAt: string;
@@ -20,8 +21,8 @@ export type Category = {
   id: number;
   slug: string;
   title: string;
-  desc: string | null;
-  img: string | null;
+  description: string | null;
+  image: string | null;
   color: string;
   createdAt: string;
   updatedAt: string;

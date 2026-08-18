@@ -1,36 +1,124 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "./generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+enum Status {
+  PENDING
+  PAID
+  DELIVERED
+  CANCELLED
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 model Category {
-  id       Int       @id @default(autoincrement())
-  slug     String    @unique
-  title    String
-  desc     String?
-  img      String?
-  color    String    @default("black")
-  products Product[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id            Int       @id @default(autoincrement())
+  slug          String    @unique
+  title         String
+  description   String?
+  image         String?
+  color         String    @default("black")
+
+  products      Product[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
 }
 
 model Product {
-  id         Int       @id @default(autoincrement())
-  title      String
-  desc       String?
-  img        String?
-  price      Float
-  options    Json?
-  isFeatured Boolean   @default(false)
-  categoryId Int
-  category   Category  @relation(fields: [categoryId], references: [id])
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id          Int       @id @default(autoincrement())
+  title       String
+  desc        String?
+  img         String?
+  price       Decimal   @db.Decimal(10, 2)
+  isFeatured  Boolean   @default(false)
+
+  categoryId  Int
+  category    Category  @relation(fields: [categoryId], references: [id])
+
+  options     ProductOption[]
+  orderItems  OrderItem[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 
   @@index([categoryId])
+}
+
+model ProductOption {
+  id              Int       @id @default(autoincrement())
+  title           String
+  additionalPrice Decimal   @db.Decimal(10, 2)
+  productId       Int
+
+  product         Product   @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String?
+  image     String?
+  provider  String?
+  phone     String?
+  role      Role      @default(USER)
+
+  orders    Order[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model Order {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+
+  subtotal     Decimal   @db.Decimal(10, 2)
+  deliveryCost Decimal   @default(0) @db.Decimal(10, 2)
+  serviceCost  Decimal   @default(0) @db.Decimal(10, 2)
+  total        Decimal   @db.Decimal(10, 2)
+
+  status       Status    @default(PENDING)
+
+  address      String
+  phone        String
+
+  user         User      @relation(fields: [userId], references: [id])
+  items        OrderItem[]
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  @@index([userId])
+  @@index([status])
+}
+
+model OrderItem {
+  id         Int       @id @default(autoincrement())
+  orderId    Int
+  productId  Int
+  quantity   Int       @default(1)
+  sizeOption String?
+  price      Decimal   @db.Decimal(10, 2)
+
+  order      Order     @relation(fields: [orderId], references: [id])
+  product    Product   @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
 }
