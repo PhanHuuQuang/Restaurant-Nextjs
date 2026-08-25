@@ -1,6 +1,6 @@
 # Restaurant Backend
 
-NestJS REST API for the Restaurant project. It serves categories, products, users, and orders to the [frontend](../frontend/README.md), uses Prisma 7 as ORM and PostgreSQL 16 (via Docker) as the database.
+NestJS REST API for the Restaurant project. It serves categories, products, users, and orders to the [frontend](../frontend/README.md), uses Prisma 7 as ORM and PostgreSQL 16 (via Docker) as the database. Includes authentication module with JWT and Google OAuth2.
 
 ## Tech Stack
 
@@ -9,7 +9,8 @@ NestJS REST API for the Restaurant project. It serves categories, products, user
 - PostgreSQL 16 (Docker, see `docker-compose.yml`)
 - Swagger for API documentation
 - class-validator / class-transformer for request validation
-- Passport + JWT (installed, ready for auth implementation)
+- Passport + JWT (authentication with access/refresh tokens)
+- Google OAuth2 (social login)
 
 ## Database Models
 
@@ -40,6 +41,7 @@ backend/
     ├── main.ts               # App bootstrap (dotenv, CORS, validation, Swagger)
     ├── app.module.ts          # Root module
     ├── prisma/                # PrismaService + PrismaModule (global)
+    ├── auth/                  # Authentication module (JWT, Google OAuth2, guards)
     ├── categories/            # Category CRUD module (entity, DTOs, service, controller)
     └── products/              # Product CRUD module (entity, DTOs, service, controller)
 ```
@@ -72,6 +74,10 @@ This starts a PostgreSQL 16 container (`restaurant-postgres`) with user `restaur
 ```env
 DATABASE_URL="postgresql://restaurant:restaurant@localhost:5432/restaurant"
 JWT_SECRET_KEY="your_secret_key_here"
+JWT_REFRESH_SECRET_KEY="your_refresh_secret_key_here"
+GOOGLE_CLIENT_ID="your_google_client_id"
+GOOGLE_CLIENT_SECRET="your_google_client_secret"
+GOOGLE_CALLBACK_URL="http://localhost:5555/auth/google/callback"
 PORT=5555
 ```
 
@@ -122,6 +128,17 @@ Interactive documentation (Swagger): `http://localhost:5555/api`
 | PATCH | `/products/:id` | Update a product (replaces options if provided) |
 | DELETE | `/products/:id` | Soft-delete a product |
 
+### Auth
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/auth/register` | Register a new user |
+| POST | `/auth/login` | Login with email/password, returns JWT tokens |
+| POST | `/auth/refresh` | Refresh access token using refresh token |
+| GET | `/auth/google` | Initiate Google OAuth2 login |
+| GET | `/auth/google/callback` | Google OAuth2 callback URL |
+| GET | `/auth/profile` | Get current user profile (requires JWT) |
+
 ## Useful Commands
 
 ```bash
@@ -147,6 +164,15 @@ npx prisma migrate reset # Reset database and re-apply all migrations
 - `.env` is loaded manually via `dotenv/config` in `main.ts` and `seed.ts`
 - `prisma migrate dev` no longer runs seed automatically — run `npx prisma db seed` separately
 - `prisma generate` must be run manually after schema changes
+
+## Authentication
+
+The authentication module supports:
+- **Local registration/login** with email and password (bcrypt hashed)
+- **JWT tokens** with access and refresh token flow
+- **Google OAuth2** for social login
+
+Protected routes require a valid JWT token in the `Authorization: Bearer <token>` header.
 
 ## Troubleshooting
 

@@ -1,6 +1,6 @@
 # Restaurant Frontend
 
-Next.js customer-facing app for the Restaurant project: menu, featured products, offers, cart and login. It fetches all data from the [backend API](../backend/README.md).
+Next.js customer-facing app for the Restaurant project: menu, featured products, offers, cart and login. It fetches all data from the [backend API](../backend/README.md). Includes authentication with JWT and Google OAuth2.
 
 ## Tech Stack
 
@@ -14,7 +14,7 @@ Next.js customer-facing app for the Restaurant project: menu, featured products,
 
 ```
 frontend/
-├── .env                      # Environment variables (API_BASE_URL)
+├── .env                      # Environment variables (API_BASE_URL, auth keys)
 ├── eslint.config.mjs         # ESLint flat config (eslint-config-next)
 ├── tailwind.config.js
 ├── public/temporary/         # Product / category images
@@ -25,13 +25,15 @@ frontend/
     │   ├── product/[id]/     # Product detail page
     │   ├── cart/             # Cart
     │   ├── orders/           # Orders
-    │   └── login/            # Login
+    │   └── auth/             # Login, Register, Google OAuth callback
     ├── components/           # NavBar, Featured, Slider, Offer, Menu, Price, ...
+    ├── hooks/                # Custom hooks (useAuth, useToken)
     ├── api/                  # Typed API client for the backend
     │   ├── client.ts         # Base fetch wrapper (reads API_BASE_URL)
+    │   ├── auth.ts           # Auth endpoints (register, login, refresh, profile)
     │   ├── categories.ts     # Category endpoints
     │   ├── products.ts       # Product endpoints
-    │   └── types.ts          # Shared types (Product, Category, ProductOption)
+    │   └── types.ts          # Shared types (Product, Category, ProductOption, User)
     └── data.ts               # Mock data (legacy, now replaced by API calls)
 ```
 
@@ -54,9 +56,10 @@ npm install
 
 ```env
 API_BASE_URL=http://localhost:5555
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
 ```
 
-This tells the frontend where the NestJS backend API is running.
+This tells the frontend where the NestJS backend API is running. The Google Client ID is used for Google OAuth2 login on the client side.
 
 ### 3. Start the dev server
 
@@ -84,15 +87,24 @@ The frontend communicates with the backend through a typed API client:
 | File | Purpose |
 |------|---------|
 | `src/api/client.ts` | Generic fetch wrapper. Reads `API_BASE_URL` from env. Throws `ApiError` on non-2xx responses. |
+| `src/api/auth.ts` | `register()`, `login()`, `refreshToken()`, `getProfile()`, `getGoogleAuthUrl()` |
 | `src/api/categories.ts` | `getCategories()`, `getCategory(slug)` |
 | `src/api/products.ts` | `getProducts(categoryId?)`, `getFeaturedProducts()`, `getProduct(id)` |
-| `src/api/types.ts` | `Product`, `Category`, `CategoryWithProducts`, `ProductOption` |
+| `src/api/types.ts` | `Product`, `Category`, `CategoryWithProducts`, `ProductOption`, `User`, `AuthResponse` |
 
 All API requests use `cache: "no-store"` to always fetch fresh data.
+
+## Authentication
+
+The frontend supports:
+- **Email/password registration and login** via JWT tokens
+- **Google OAuth2** social login
+- Automatic token refresh using refresh tokens
+- Protected routes (cart, orders) require authentication
 
 ## Notes
 
 - Product images referenced by the database seed live in `public/temporary/`.
 - The `src/data.ts` file contains legacy mock data that is no longer used — all pages now fetch from the API.
 - The backend uses **soft delete** (`deletedAt`), so the frontend only sees active records.
-- Auth (login, orders, cart persistence) is not yet implemented — UI shells exist at `/login`, `/orders`, `/cart`.
+- Auth tokens are stored in localStorage and attached to API requests automatically.
