@@ -4,11 +4,22 @@ import { AuthService } from './auth.service';
 
 describe('AuthController', () => {
   let controller: AuthController;
+  let authService: {
+    register: jest.Mock;
+    login: jest.Mock;
+    signToken: jest.Mock;
+  };
 
   beforeEach(async () => {
+    authService = {
+      register: jest.fn(),
+      login: jest.fn(),
+      signToken: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
-      providers: [AuthService],
+      providers: [{ provide: AuthService, useValue: authService }],
     }).compile();
 
     controller = module.get<AuthController>(AuthController);
@@ -16,5 +27,53 @@ describe('AuthController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  describe('register', () => {
+    it('should call authService.register with dto', async () => {
+      const dto = { name: 'John', email: 'john@test.com', password: 'password123' };
+      authService.register.mockResolvedValue({ accessToken: 'token' });
+
+      const result = await controller.register(dto);
+
+      expect(authService.register).toHaveBeenCalledWith(dto);
+      expect(result).toEqual({ accessToken: 'token' });
+    });
+  });
+
+  describe('login', () => {
+    it('should call authService.login with email and password', async () => {
+      const dto = { email: 'john@test.com', password: 'password123' };
+      authService.login.mockResolvedValue({ accessToken: 'token' });
+
+      const result = await controller.login(dto);
+
+      expect(authService.login).toHaveBeenCalledWith(dto.email, dto.password);
+      expect(result).toEqual({ accessToken: 'token' });
+    });
+  });
+
+  describe('profile', () => {
+    it('should return req.user', () => {
+      const user = { userId: 1, email: 'john@test.com', role: 'USER' };
+      const result = controller.profile({ user });
+
+      expect(result).toEqual(user);
+    });
+  });
+
+  describe('googleAuthCallback', () => {
+    it('should redirect with token', () => {
+      const req = { user: { id: 1, email: 'john@test.com', role: 'USER' } };
+      const res = { redirect: jest.fn() };
+      authService.signToken.mockReturnValue({ accessToken: 'google-token' });
+
+      controller.googleAuthCallback(req, res as any);
+
+      expect(authService.signToken).toHaveBeenCalledWith(req.user);
+      expect(res.redirect).toHaveBeenCalledWith(
+        'http://localhost:3000/auth/callback?token=google-token',
+      );
+    });
   });
 });
