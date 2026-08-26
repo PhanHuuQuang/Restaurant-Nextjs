@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Menu from '../Menu';
+import { AuthContext } from '@/context/AuthContext';
 
 vi.mock('next/image', () => ({
   default: (props: Record<string, unknown>) => {
@@ -33,14 +34,31 @@ vi.mock('../CartIcon', () => ({
   ),
 }));
 
+const renderWithAuth = (user: null | { id: number; name: string; email: string; role: string } = null) => {
+  return render(
+    <AuthContext.Provider
+      value={{
+        user,
+        token: user ? 'mock-token' : null,
+        loading: false,
+        setUser: vi.fn(),
+        login: vi.fn(),
+        logout: vi.fn(),
+      }}
+    >
+      <Menu />
+    </AuthContext.Provider>
+  );
+};
+
 describe('Menu', () => {
   it('should render the open menu button initially', () => {
-    render(<Menu />);
+    renderWithAuth();
     expect(screen.getByTestId('img-Open Menu')).toBeDefined();
   });
 
   it('should open menu when open button is clicked', () => {
-    render(<Menu />);
+    renderWithAuth();
     fireEvent.click(screen.getByTestId('img-Open Menu'));
     expect(screen.getByText('Homepage')).toBeDefined();
     expect(screen.getByText('Working Hours')).toBeDefined();
@@ -49,14 +67,14 @@ describe('Menu', () => {
   });
 
   it('should close menu when close button is clicked', () => {
-    render(<Menu />);
+    renderWithAuth();
     fireEvent.click(screen.getByTestId('img-Open Menu'));
     fireEvent.click(screen.getByTestId('img-Close Menu'));
     expect(screen.queryByText('Homepage')).toBeNull();
   });
 
   it('should render links with correct hrefs when open', () => {
-    render(<Menu />);
+    renderWithAuth();
     fireEvent.click(screen.getByTestId('img-Open Menu'));
 
     const homepage = screen.getByText('Homepage');
@@ -67,13 +85,13 @@ describe('Menu', () => {
   });
 
   it('should show Login link when user is not logged in', () => {
-    render(<Menu />);
+    renderWithAuth();
     fireEvent.click(screen.getByTestId('img-Open Menu'));
     expect(screen.getByText('Login')).toBeDefined();
   });
 
   it('should close menu when a link is clicked', () => {
-    render(<Menu />);
+    renderWithAuth();
     fireEvent.click(screen.getByTestId('img-Open Menu'));
     fireEvent.click(screen.getByText('Homepage'));
     expect(screen.queryByText('Working Hours')).toBeNull();

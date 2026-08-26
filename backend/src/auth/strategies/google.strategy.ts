@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, VerifyCallback } from 'passport-google-oauth2';
+import { Strategy } from 'passport-google-oauth2';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -10,10 +10,12 @@ export class GoogleOauthStrategy extends PassportStrategy(Strategy, 'google') {
     config: ConfigService,
     private readonly prisma: PrismaService,
   ) {
+    const backendUrl =
+      config.get<string>('BACKEND_URL') ?? 'http://localhost:3000';
     super({
       clientID: config.get<string>('GOOGLE_CLIENT_ID'),
       clientSecret: config.get<string>('GOOGLE_CLIENT_SECRET'),
-      callbackURL: '/auth/google/callback',
+      callbackURL: `${backendUrl}/auth/google/callback`,
       scope: ['email', 'profile'],
     });
   }

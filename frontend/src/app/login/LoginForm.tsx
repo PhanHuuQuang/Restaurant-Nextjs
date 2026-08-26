@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { login, type LoginInput } from "@/api/auth";
+import { useRouter } from "next/navigation";
+import { login as apiLogin, type LoginInput } from "@/api/auth";
+import { useAuth } from "@/context/AuthContext";
 
 type Props = {
   onSwitchToRegister: () => void;
@@ -15,6 +17,8 @@ const LoginForm = ({ onSwitchToRegister, onBack }: Props) => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputs((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -26,9 +30,9 @@ const LoginForm = ({ onSwitchToRegister, onBack }: Props) => {
     setLoading(true);
 
     try {
-      const res = await login(inputs);
-      // TODO: store token (e.g. localStorage / context)
-      console.log("Logged in:", res.accessToken);
+      const res = await apiLogin(inputs);
+      await login(res.accessToken);
+      router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

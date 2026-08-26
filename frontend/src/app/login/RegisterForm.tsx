@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { register, type RegisterInput } from "@/api/auth";
+import { useRouter } from "next/navigation";
+import { register as apiRegister, type RegisterInput } from "@/api/auth";
+import { useAuth } from "@/context/AuthContext";
 
 type Props = {
   onSwitchToLogin: () => void;
@@ -17,6 +19,8 @@ const RegisterForm = ({ onSwitchToLogin, onBack }: Props) => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputs((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -28,9 +32,9 @@ const RegisterForm = ({ onSwitchToLogin, onBack }: Props) => {
     setLoading(true);
 
     try {
-      const res = await register(inputs);
-      // TODO: store token (e.g. localStorage / context)
-      console.log("Registered:", res.accessToken);
+      const res = await apiRegister(inputs);
+      await login(res.accessToken);
+      router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     } finally {

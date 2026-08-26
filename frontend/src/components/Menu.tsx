@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import CartIcon from "./CartIcon";
+import { useAuth } from "@/context/AuthContext";
 
 const links = [
   { id: 1, title: "Homepage", url: "/" },
@@ -14,8 +15,8 @@ const links = [
 
 const Menu = () => {
   const [open, setOpen] = useState(false);
+  const { user, logout } = useAuth();
 
-  const user = false;
   return (
     <div>
       {!open ? (
@@ -49,9 +50,19 @@ const Menu = () => {
               Login
             </Link>
           ) : (
-            <Link href="/orders" onClick={() => setOpen(false)}>
-              Orders
-            </Link>
+            <>
+              <Link href="/orders" onClick={() => setOpen(false)}>
+                Orders
+              </Link>
+              <button
+                onClick={() => {
+                  logout();
+                  setOpen(false);
+                }}
+              >
+                Logout
+              </button>
+            </>
           )}
           <CartIcon onClick={() => setOpen(false)} />
         </div>

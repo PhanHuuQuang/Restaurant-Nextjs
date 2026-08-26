@@ -1,9 +1,11 @@
-import { apiClient, ApiError } from "./client";
+import { API_BASE_URL, apiClient } from "./client";
 
 export type User = {
   id: number;
   name: string;
   email: string;
+  phone?: string;
+  image?: string;
   role: string;
 };
 
@@ -54,9 +56,40 @@ export async function refreshToken(token: string): Promise<AuthResponse> {
   });
 }
 
-export function getGoogleAuthUrl(): string {
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
-  const redirectUri = `${window.location.origin}/auth/callback`;
-  const scope = "email profile";
-  return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}`;
+export type UpdateProfileInput = {
+  name?: string;
+  phone?: string;
+};
+
+export async function updateProfile(
+  token: string,
+  data: UpdateProfileInput,
+): Promise<User> {
+  return apiClient<User>("/auth/profile", {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function uploadAvatar(token: string, file: File): Promise<User> {
+  const formData = new FormData();
+  formData.append("avatar", file);
+
+  const res = await fetch(`${API_BASE_URL}/auth/profile/avatar`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const message = await res.text();
+    throw new Error(message || "Failed to upload avatar");
+  }
+
+  return res.json() as Promise<User>;
 }

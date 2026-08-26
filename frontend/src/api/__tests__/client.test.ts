@@ -118,7 +118,7 @@ describe('ApiError', () => {
 
 describe('API_BASE_URL', () => {
   it('should default to localhost:3000 when env var is not set', () => {
-    delete process.env.API_BASE_URL;
+    delete process.env.NEXT_PUBLIC_API_BASE_URL;
     expect(API_BASE_URL).toBe('http://localhost:3000');
   });
 });
