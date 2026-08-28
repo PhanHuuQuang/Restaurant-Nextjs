@@ -32,19 +32,28 @@ describe('CreateProductDto', () => {
   });
 
   it('should fail when title is missing', async () => {
-    const dto = plainToInstance(CreateProductDto, { price: 12.99, categoryId: 1 });
+    const dto = plainToInstance(CreateProductDto, {
+      price: 12.99,
+      categoryId: 1,
+    });
     const errors = await validate(dto);
     expect(errors.some((e) => e.property === 'title')).toBe(true);
   });
 
   it('should fail when price is missing', async () => {
-    const dto = plainToInstance(CreateProductDto, { title: 'Margherita', categoryId: 1 });
+    const dto = plainToInstance(CreateProductDto, {
+      title: 'Margherita',
+      categoryId: 1,
+    });
     const errors = await validate(dto);
     expect(errors.some((e) => e.property === 'price')).toBe(true);
   });
 
   it('should fail when categoryId is missing', async () => {
-    const dto = plainToInstance(CreateProductDto, { title: 'Margherita', price: 12.99 });
+    const dto = plainToInstance(CreateProductDto, {
+      title: 'Margherita',
+      price: 12.99,
+    });
     const errors = await validate(dto);
     expect(errors.some((e) => e.property === 'categoryId')).toBe(true);
   });

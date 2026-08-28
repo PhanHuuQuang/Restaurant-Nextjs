@@ -25,7 +25,10 @@ describe('RegisterDto', () => {
   });
 
   it('should fail if name is missing', async () => {
-    const errors = await validateDto({ email: 'john@test.com', password: 'password123' });
+    const errors = await validateDto({
+      email: 'john@test.com',
+      password: 'password123',
+    });
     const nameError = errors.find((e) => e.property === 'name');
     expect(nameError).toBeDefined();
   });

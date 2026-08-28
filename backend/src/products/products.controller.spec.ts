@@ -28,7 +28,9 @@ describe('ProductsController', () => {
       findFeatured: jest.fn().mockResolvedValue([mockProduct]),
       findOne: jest.fn().mockResolvedValue(mockProduct),
       update: jest.fn().mockResolvedValue({ ...mockProduct, title: 'Updated' }),
-      remove: jest.fn().mockResolvedValue({ ...mockProduct, deletedAt: new Date() }),
+      remove: jest
+        .fn()
+        .mockResolvedValue({ ...mockProduct, deletedAt: new Date() }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
