@@ -30,7 +30,7 @@ export class GoogleOauthStrategy extends PassportStrategy(Strategy, 'google') {
       photos: { value: string }[];
     },
   ) {
-    const { id, emails, displayName, photos } = profile;
+    const { emails, displayName, photos } = profile;
     const email = emails[0].value;
 
     const user = await this.prisma.user.upsert({

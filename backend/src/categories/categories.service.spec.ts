@@ -90,9 +90,7 @@ describe('CategoriesService', () => {
     it('should return a category with products by slug', async () => {
       const categoryWithProducts = {
         ...mockCategory,
-        products: [
-          { id: 1, title: 'Margherita', price: 12, deletedAt: null },
-        ],
+        products: [{ id: 1, title: 'Margherita', price: 12, deletedAt: null }],
       };
       prisma.category.findFirst.mockResolvedValue(categoryWithProducts);
 

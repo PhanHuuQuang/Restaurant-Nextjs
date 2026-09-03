@@ -14,7 +14,12 @@ export class ProductsService {
       data: {
         ...productData,
         options: options
-          ? { create: options.map((o) => ({ title: o.title, additionalPrice: o.additionalPrice })) }
+          ? {
+              create: options.map((o) => ({
+                title: o.title,
+                additionalPrice: o.additionalPrice,
+              })),
+            }
           : undefined,
       },
       include: { options: true },
@@ -67,7 +72,14 @@ export class ProductsService {
       data: {
         ...productData,
         ...(options
-          ? { options: { create: options.map((o) => ({ title: o.title, additionalPrice: o.additionalPrice })) } }
+          ? {
+              options: {
+                create: options.map((o) => ({
+                  title: o.title,
+                  additionalPrice: o.additionalPrice,
+                })),
+              },
+            }
           : {}),
       },
       include: { options: true },

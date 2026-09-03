@@ -215,7 +215,7 @@ describe('ProductsService', () => {
         options: [{ id: 3, title: 'Medium', additionalPrice: 2 }],
       });
 
-      const result = await service.update(1, dto);
+      await service.update(1, dto);
 
       expect(prisma.productOption.deleteMany).toHaveBeenCalledWith({
         where: { productId: 1 },

@@ -8,6 +8,8 @@ describe('AuthController', () => {
     register: jest.Mock;
     login: jest.Mock;
     signToken: jest.Mock;
+    getProfile: jest.Mock;
+    updateProfile: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -15,6 +17,8 @@ describe('AuthController', () => {
       register: jest.fn(),
       login: jest.fn(),
       signToken: jest.fn(),
+      getProfile: jest.fn(),
+      updateProfile: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -31,7 +35,11 @@ describe('AuthController', () => {
 
   describe('register', () => {
     it('should call authService.register with dto', async () => {
-      const dto = { name: 'John', email: 'john@test.com', password: 'password123' };
+      const dto = {
+        name: 'John',
+        email: 'john@test.com',
+        password: 'password123',
+      };
       authService.register.mockResolvedValue({ accessToken: 'token' });
 
       const result = await controller.register(dto);
@@ -54,11 +62,49 @@ describe('AuthController', () => {
   });
 
   describe('profile', () => {
-    it('should return req.user', () => {
-      const user = { userId: 1, email: 'john@test.com', role: 'USER' };
-      const result = controller.profile({ user });
+    it('should call authService.getProfile with userId from request', async () => {
+      const req = { user: { userId: 1 } };
+      authService.getProfile.mockResolvedValue({
+        id: 1,
+        email: 'john@test.com',
+        role: 'USER',
+      });
 
-      expect(result).toEqual(user);
+      const result = await controller.profile(req);
+
+      expect(authService.getProfile).toHaveBeenCalledWith(1);
+      expect(result).toEqual({ id: 1, email: 'john@test.com', role: 'USER' });
+    });
+  });
+
+  describe('updateProfile', () => {
+    it('should call authService.updateProfile with userId and dto', async () => {
+      const req = { user: { userId: 1 } };
+      const dto = { name: 'John' };
+      authService.updateProfile.mockResolvedValue({ id: 1, name: 'John' });
+
+      const result = await controller.updateProfile(req, dto);
+
+      expect(authService.updateProfile).toHaveBeenCalledWith(1, dto);
+      expect(result).toEqual({ id: 1, name: 'John' });
+    });
+  });
+
+  describe('uploadAvatar', () => {
+    it('should call authService.updateProfile with image url', async () => {
+      const req = { user: { userId: 1 } };
+      const file = { filename: 'avatar.jpg' } as Express.Multer.File;
+      authService.updateProfile.mockResolvedValue({
+        id: 1,
+        image: '/uploads/avatars/avatar.jpg',
+      });
+
+      const result = await controller.uploadAvatar(req, file);
+
+      expect(authService.updateProfile).toHaveBeenCalledWith(1, {
+        image: '/uploads/avatars/avatar.jpg',
+      });
+      expect(result).toEqual({ id: 1, image: '/uploads/avatars/avatar.jpg' });
     });
   });
 

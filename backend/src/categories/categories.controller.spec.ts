@@ -26,8 +26,12 @@ describe('CategoriesController', () => {
       create: jest.fn().mockResolvedValue(mockCategory),
       findAll: jest.fn().mockResolvedValue([mockCategory]),
       findOne: jest.fn().mockResolvedValue(mockCategory),
-      update: jest.fn().mockResolvedValue({ ...mockCategory, title: 'Updated' }),
-      remove: jest.fn().mockResolvedValue({ ...mockCategory, deletedAt: new Date() }),
+      update: jest
+        .fn()
+        .mockResolvedValue({ ...mockCategory, title: 'Updated' }),
+      remove: jest
+        .fn()
+        .mockResolvedValue({ ...mockCategory, deletedAt: new Date() }),
     };
 
     const module: TestingModule = await Test.createTestingModule({

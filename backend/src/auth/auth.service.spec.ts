@@ -38,7 +38,11 @@ describe('AuthService', () => {
   });
 
   describe('register', () => {
-    const dto = { name: 'John', email: 'john@test.com', password: 'password123' };
+    const dto = {
+      name: 'John',
+      email: 'john@test.com',
+      password: 'password123',
+    };
 
     it('should register a new user and return token', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
@@ -53,17 +57,29 @@ describe('AuthService', () => {
 
       const result = await service.register(dto);
 
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { email: dto.email } });
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: { email: dto.email },
+      });
       expect(bcrypt.hash).toHaveBeenCalledWith(dto.password, 10);
       expect(prisma.user.create).toHaveBeenCalledWith({
         data: { name: dto.name, email: dto.email, password: 'hashed-password' },
-        select: { id: true, name: true, email: true, role: true },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          image: true,
+          role: true,
+        },
       });
       expect(result).toEqual({ accessToken: 'jwt-token' });
     });
 
     it('should throw ConflictException if email already exists', async () => {
-      prisma.user.findUnique.mockResolvedValue({ id: 1, email: 'john@test.com' });
+      prisma.user.findUnique.mockResolvedValue({
+        id: 1,
+        email: 'john@test.com',
+      });
 
       await expect(service.register(dto)).rejects.toThrow(ConflictException);
       expect(prisma.user.create).not.toHaveBeenCalled();
@@ -72,14 +88,21 @@ describe('AuthService', () => {
 
   describe('login', () => {
     it('should return a token for valid credentials', async () => {
-      const user = { id: 1, email: 'john@test.com', password: 'hashed', role: 'USER' };
+      const user = {
+        id: 1,
+        email: 'john@test.com',
+        password: 'hashed',
+        role: 'USER',
+      };
       prisma.user.findUnique.mockResolvedValue(user);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       jwt.sign.mockReturnValue('jwt-token');
 
       const result = await service.login('john@test.com', 'password123');
 
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { email: 'john@test.com' } });
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: { email: 'john@test.com' },
+      });
       expect(bcrypt.compare).toHaveBeenCalledWith('password123', 'hashed');
       expect(result).toEqual({ accessToken: 'jwt-token' });
     });
@@ -87,9 +110,9 @@ describe('AuthService', () => {
     it('should throw UnauthorizedException if user not found', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.login('nobody@test.com', 'password123')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.login('nobody@test.com', 'password123'),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException if password is wrong', async () => {
@@ -112,9 +135,9 @@ describe('AuthService', () => {
         password: null,
       });
 
-      await expect(service.login('john@test.com', 'password123')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.login('john@test.com', 'password123'),
+      ).rejects.toThrow(UnauthorizedException);
     });
   });
 
@@ -122,9 +145,17 @@ describe('AuthService', () => {
     it('should return an object with accessToken', () => {
       jwt.sign.mockReturnValue('signed-token');
 
-      const result = service.signToken({ id: 1, email: 'test@test.com', role: 'USER' });
+      const result = service.signToken({
+        id: 1,
+        email: 'test@test.com',
+        role: 'USER',
+      });
 
-      expect(jwt.sign).toHaveBeenCalledWith({ sub: 1, email: 'test@test.com', role: 'USER' });
+      expect(jwt.sign).toHaveBeenCalledWith({
+        sub: 1,
+        email: 'test@test.com',
+        role: 'USER',
+      });
       expect(result).toEqual({ accessToken: 'signed-token' });
     });
   });

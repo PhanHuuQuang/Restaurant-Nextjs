@@ -14,7 +14,9 @@ describe('Auth (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
@@ -99,13 +101,11 @@ describe('Auth (e2e)', () => {
 
   describe('/auth/login (POST)', () => {
     beforeEach(async () => {
-      await request(app.getHttpServer())
-        .post('/auth/register')
-        .send({
-          name: 'Login User',
-          email: 'login@example.com',
-          password: 'password123',
-        });
+      await request(app.getHttpServer()).post('/auth/register').send({
+        name: 'Login User',
+        email: 'login@example.com',
+        password: 'password123',
+      });
     });
 
     it('should login and return accessToken', () => {
