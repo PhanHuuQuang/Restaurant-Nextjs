@@ -1,4 +1,9 @@
-import { Order, OrderItem, Status } from '../../../prisma/generated/prisma/client';
+import {
+  Order,
+  OrderItem,
+  Status,
+  User,
+} from '../../../prisma/generated/prisma/client';
 import { Decimal } from '../../../prisma/generated/prisma/internal/prismaNamespace';
 
 export class OrderEntity implements Order {
@@ -11,6 +16,7 @@ export class OrderEntity implements Order {
   status: Status;
   address: string;
   phone: string;
+  user: User;
   items: OrderItem[];
   createdAt: Date;
   updatedAt: Date;

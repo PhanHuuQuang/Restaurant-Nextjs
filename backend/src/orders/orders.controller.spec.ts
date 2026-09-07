@@ -10,6 +10,8 @@ describe('OrdersController', () => {
     create: jest.Mock;
     findMyOrders: jest.Mock;
     findOne: jest.Mock;
+    findAll: jest.Mock;
+    updateStatus: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -17,6 +19,8 @@ describe('OrdersController', () => {
       create: jest.fn(),
       findMyOrders: jest.fn(),
       findOne: jest.fn(),
+      findAll: jest.fn(),
+      updateStatus: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -34,6 +38,18 @@ describe('OrdersController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  describe('findAll', () => {
+    it('should call service.findAll with query', () => {
+      const query = { page: 1, limit: 10 };
+      service.findAll.mockResolvedValue({ data: [], meta: {} });
+
+      const result = controller.findAll(query);
+
+      expect(service.findAll).toHaveBeenCalledWith(query);
+      expect(result).resolves.toEqual({ data: [], meta: {} });
+    });
   });
 
   describe('create', () => {
@@ -74,6 +90,18 @@ describe('OrdersController', () => {
 
       expect(service.findOne).toHaveBeenCalledWith(1, 1, 'USER');
       expect(result).resolves.toEqual({ id: 1 });
+    });
+  });
+
+  describe('updateStatus', () => {
+    it('should call service.updateStatus with id and status', () => {
+      const dto = { status: 'PAID' as const };
+      service.updateStatus.mockResolvedValue({ id: 1, status: 'PAID' });
+
+      const result = controller.updateStatus(1, dto);
+
+      expect(service.updateStatus).toHaveBeenCalledWith(1, 'PAID');
+      expect(result).resolves.toEqual({ id: 1, status: 'PAID' });
     });
   });
 });

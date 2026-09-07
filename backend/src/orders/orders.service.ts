@@ -5,8 +5,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { Role } from '../../prisma/generated/prisma/enums';
+import { Role, Status } from '../../prisma/generated/prisma/enums';
+
+const ALLOWED_TRANSITIONS: Record<Status, Status[]> = {
+  [Status.PENDING]: [Status.PAID, Status.CANCELLED],
+  [Status.PAID]: [Status.DELIVERED, Status.CANCELLED],
+  [Status.DELIVERED]: [],
+  [Status.CANCELLED]: [],
+};
 
 const orderWithItems = {
   include: {
@@ -98,5 +106,52 @@ export class OrdersService {
     }
 
     return order;
+  }
+
+  async findAll(pagination: PaginationQueryDto) {
+    const page = pagination.page;
+    const limit = pagination.limit;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.order.findMany({
+        skip,
+        take: limit,
+        where: { deletedAt: null },
+        ...orderWithItems,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.order.count({ where: { deletedAt: null } }),
+    ]);
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async updateStatus(id: number, status: Status) {
+    const order = await this.prisma.order.findUnique({
+      where: { id, deletedAt: null },
+    });
+
+    if (!order) throw new NotFoundException('Order not found');
+
+    if (!ALLOWED_TRANSITIONS[order.status].includes(status)) {
+      throw new BadRequestException(
+        `Cannot transition order from "${order.status}" to "${status}"`,
+      );
+    }
+
+    return this.prisma.order.update({
+      where: { id },
+      data: { status },
+      ...orderWithItems,
+    });
   }
 }

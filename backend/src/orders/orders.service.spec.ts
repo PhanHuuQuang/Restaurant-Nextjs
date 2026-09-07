@@ -7,13 +7,19 @@ import {
 import { Decimal } from '../../prisma/generated/prisma/internal/prismaNamespace';
 import { OrdersService } from './orders.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { Role } from '../../prisma/generated/prisma/enums';
+import { Role, Status } from '../../prisma/generated/prisma/enums';
 
 describe('OrdersService', () => {
   let service: OrdersService;
   let prisma: {
     product: { findMany: jest.Mock };
-    order: { findUnique: jest.Mock; findMany: jest.Mock; create: jest.Mock };
+    order: {
+      findUnique: jest.Mock;
+      findMany: jest.Mock;
+      create: jest.Mock;
+      update: jest.Mock;
+      count: jest.Mock;
+    };
     $transaction: jest.Mock;
   };
 
@@ -21,9 +27,7 @@ describe('OrdersService', () => {
     id: 1,
     title: 'Pizza',
     price: new Decimal('10.00'),
-    options: [
-      { id: 1, title: 'Large', additionalPrice: new Decimal('5.00') },
-    ],
+    options: [{ id: 1, title: 'Large', additionalPrice: new Decimal('5.00') }],
   };
 
   const mockOrder = {
@@ -55,6 +59,8 @@ describe('OrdersService', () => {
         findUnique: jest.fn(),
         findMany: jest.fn(),
         create: jest.fn(),
+        update: jest.fn(),
+        count: jest.fn(),
       },
       $transaction: jest.fn(),
     };
@@ -74,7 +80,7 @@ describe('OrdersService', () => {
   describe('create', () => {
     it('should create an order with computed totals', async () => {
       prisma.product.findMany.mockResolvedValue([mockProduct]);
-      prisma.$transaction.mockImplementation((fn: Function) =>
+      prisma.$transaction.mockImplementation((fn: (tx: any) => unknown) =>
         fn({
           order: { create: jest.fn().mockResolvedValue(mockOrder) },
         }),
@@ -129,9 +135,15 @@ describe('OrdersService', () => {
         subtotal: new Decimal('20.00'),
         serviceCost: new Decimal('1.00'),
         total: new Decimal('21.00'),
-        items: [{ ...mockOrder.items[0], sizeOption: null, price: new Decimal('10.00') }],
+        items: [
+          {
+            ...mockOrder.items[0],
+            sizeOption: null,
+            price: new Decimal('10.00'),
+          },
+        ],
       };
-      prisma.$transaction.mockImplementation((fn: Function) =>
+      prisma.$transaction.mockImplementation((fn: (tx: any) => unknown) =>
         fn({ order: { create: jest.fn().mockResolvedValue(createdOrder) } }),
       );
 
@@ -199,6 +211,136 @@ describe('OrdersService', () => {
 
       await expect(service.findOne(1, 99, Role.USER)).rejects.toThrow(
         ForbiddenException,
+      );
+    });
+  });
+
+  describe('findAll', () => {
+    it('should return paginated orders with meta', async () => {
+      prisma.$transaction.mockResolvedValue([[mockOrder], 1]);
+
+      const result = await service.findAll({ page: 1, limit: 10 });
+
+      expect(prisma.order.findMany).toHaveBeenCalledWith({
+        skip: 0,
+        take: 10,
+        where: { deletedAt: null },
+        include: expect.objectContaining({ items: true }),
+        orderBy: { createdAt: 'desc' },
+      });
+      expect(prisma.order.count).toHaveBeenCalledWith({
+        where: { deletedAt: null },
+      });
+      expect(result).toEqual({
+        data: [mockOrder],
+        meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      });
+    });
+
+    it('should compute skip/take and totalPages correctly for custom page', async () => {
+      prisma.$transaction.mockResolvedValue([[mockOrder], 25]);
+
+      const result = await service.findAll({ page: 3, limit: 10 });
+
+      expect(prisma.order.findMany).toHaveBeenCalledWith({
+        skip: 20,
+        take: 10,
+        where: { deletedAt: null },
+        include: expect.objectContaining({ items: true }),
+        orderBy: { createdAt: 'desc' },
+      });
+      expect(result.meta).toEqual({
+        page: 3,
+        limit: 10,
+        total: 25,
+        totalPages: 3,
+      });
+    });
+
+    it('should return empty data when no orders exist', async () => {
+      prisma.$transaction.mockResolvedValue([[], 0]);
+
+      const result = await service.findAll({ page: 1, limit: 10 });
+
+      expect(result).toEqual({
+        data: [],
+        meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
+      });
+    });
+  });
+
+  describe('updateStatus', () => {
+    it('should transition PENDING to PAID', async () => {
+      prisma.order.findUnique.mockResolvedValue({
+        ...mockOrder,
+        status: Status.PENDING,
+      });
+      const updated = { ...mockOrder, status: Status.PAID };
+      prisma.order.update.mockResolvedValue(updated);
+
+      const result = await service.updateStatus(1, Status.PAID);
+
+      expect(prisma.order.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { status: Status.PAID },
+        include: expect.objectContaining({ items: true }),
+      });
+      expect(result).toEqual(updated);
+    });
+
+    it('should transition PENDING to CANCELLED', async () => {
+      prisma.order.findUnique.mockResolvedValue({
+        ...mockOrder,
+        status: Status.PENDING,
+      });
+      const updated = { ...mockOrder, status: Status.CANCELLED };
+      prisma.order.update.mockResolvedValue(updated);
+
+      const result = await service.updateStatus(1, Status.CANCELLED);
+
+      expect(result.status).toBe(Status.CANCELLED);
+    });
+
+    it('should transition PAID to DELIVERED', async () => {
+      prisma.order.findUnique.mockResolvedValue({
+        ...mockOrder,
+        status: Status.PAID,
+      });
+      const updated = { ...mockOrder, status: Status.DELIVERED };
+      prisma.order.update.mockResolvedValue(updated);
+
+      const result = await service.updateStatus(1, Status.DELIVERED);
+
+      expect(result.status).toBe(Status.DELIVERED);
+    });
+
+    it('should throw BadRequestException for invalid transition (PENDING to DELIVERED)', async () => {
+      prisma.order.findUnique.mockResolvedValue({
+        ...mockOrder,
+        status: Status.PENDING,
+      });
+
+      await expect(service.updateStatus(1, Status.DELIVERED)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw BadRequestException from terminal state (DELIVERED)', async () => {
+      prisma.order.findUnique.mockResolvedValue({
+        ...mockOrder,
+        status: Status.DELIVERED,
+      });
+
+      await expect(service.updateStatus(1, Status.PAID)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw NotFoundException if order not found', async () => {
+      prisma.order.findUnique.mockResolvedValue(null);
+
+      await expect(service.updateStatus(99, Status.PAID)).rejects.toThrow(
+        NotFoundException,
       );
     });
   });
