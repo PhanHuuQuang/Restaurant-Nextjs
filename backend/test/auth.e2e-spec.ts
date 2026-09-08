@@ -115,7 +115,7 @@ describe('Auth (e2e)', () => {
           email: 'login@example.com',
           password: 'password123',
         })
-        .expect(200)
+        .expect(201)
         .expect((res) => {
           expect(res.body.accessToken).toBeDefined();
         });
