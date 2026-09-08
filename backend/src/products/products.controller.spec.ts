@@ -57,18 +57,32 @@ describe('ProductsController', () => {
   });
 
   describe('findAll', () => {
-    it('should call service.findAll without categoryId', async () => {
-      const result = await controller.findAll(undefined);
+    it('should call service.findAll with query', async () => {
+      const query = { page: 1, limit: 10 };
+      const paginatedResult = {
+        data: [mockProduct],
+        meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      };
+      service.findAll.mockResolvedValue(paginatedResult);
 
-      expect(service.findAll).toHaveBeenCalledWith(undefined);
-      expect(result).toEqual([mockProduct]);
+      const result = await controller.findAll(query);
+
+      expect(service.findAll).toHaveBeenCalledWith(query);
+      expect(result).toEqual(paginatedResult);
     });
 
-    it('should call service.findAll with parsed categoryId', async () => {
-      const result = await controller.findAll('1');
+    it('should call service.findAll with categoryId filter', async () => {
+      const query = { page: 1, limit: 10, categoryId: 1 };
+      const paginatedResult = {
+        data: [mockProduct],
+        meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      };
+      service.findAll.mockResolvedValue(paginatedResult);
 
-      expect(service.findAll).toHaveBeenCalledWith(1);
-      expect(result).toEqual([mockProduct]);
+      const result = await controller.findAll(query);
+
+      expect(service.findAll).toHaveBeenCalledWith(query);
+      expect(result).toEqual(paginatedResult);
     });
   });
 

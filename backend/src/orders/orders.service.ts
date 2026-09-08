@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { PaginationQueryDto } from '../shared/dto/pagination-query.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Role, Status } from '../../prisma/generated/prisma/enums';
 

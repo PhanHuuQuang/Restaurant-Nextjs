@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { FindProductsQueryDto } from './dto/find-products-query.dto';
 
 @Injectable()
 export class ProductsService {
@@ -26,15 +27,34 @@ export class ProductsService {
     });
   }
 
-  findAll(categoryId?: number) {
-    return this.prisma.product.findMany({
-      where: {
-        deletedAt: null,
-        ...(categoryId ? { categoryId } : {}),
+  async findAll(query: FindProductsQueryDto) {
+    const { page, limit, categoryId } = query;
+    const skip = (page - 1) * limit;
+    const where = {
+      deletedAt: null,
+      ...(categoryId ? { categoryId } : {}),
+    };
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        skip,
+        take: limit,
+        where,
+        include: { options: true },
+        orderBy: { createdAt: 'asc' },
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
-      include: { options: true },
-      orderBy: { createdAt: 'asc' },
-    });
+    };
   }
 
   findFeatured() {
