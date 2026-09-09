@@ -13,6 +13,7 @@ import {
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { FindProductsQueryDto } from './dto/find-products-query.dto';
 import { Roles } from '../shared/decorators/roles.decorator';
 import { Role } from '../../prisma/generated/prisma/enums';
 import { RolesGuard } from '../shared/guards/role.guard';
@@ -30,10 +31,8 @@ export class ProductsController {
   }
 
   @Get()
-  findAll(@Query('categoryId') categoryId?: string) {
-    return this.productsService.findAll(
-      categoryId ? Number(categoryId) : undefined,
-    );
+  findAll(@Query() query: FindProductsQueryDto) {
+    return this.productsService.findAll(query);
   }
 
   @Get('featured')

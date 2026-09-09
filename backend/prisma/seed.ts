@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import { PrismaClient } from '../prisma/generated/prisma/client';
+import { Role } from '../prisma/generated/prisma/enums';
 import { PrismaPg } from '@prisma/adapter-pg';
+import * as bcrypt from 'bcryptjs';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
@@ -12,6 +14,20 @@ const defaultOptions = [
 ];
 
 async function main() {
+  const adminEmail = process.env.ADMIN_EMAIL ?? 'admin@restaurant.com';
+  const adminPassword = process.env.ADMIN_PASSWORD ?? 'Admin@123';
+
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: { role: Role.ADMIN },
+    create: {
+      name: 'Admin',
+      email: adminEmail,
+      password: await bcrypt.hash(adminPassword, 10),
+      role: Role.ADMIN,
+    },
+  });
+
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
   await prisma.productOption.deleteMany();

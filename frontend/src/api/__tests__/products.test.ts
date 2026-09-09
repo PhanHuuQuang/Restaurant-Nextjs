@@ -34,8 +34,10 @@ const mockProduct = {
 
 describe('products API client', () => {
   describe('getProducts', () => {
-    it('should fetch all products without categoryId', async () => {
-      mockFetch.mockReturnValue(jsonResponse([mockProduct]));
+    it('should fetch all products without params', async () => {
+      mockFetch.mockReturnValue(
+        jsonResponse({ data: [mockProduct], meta: { page: 1, limit: 10, total: 1, totalPages: 1 } }),
+      );
 
       const result = await getProducts();
 
@@ -43,19 +45,27 @@ describe('products API client', () => {
         expect.stringContaining('/products'),
         expect.objectContaining({ cache: 'no-store' }),
       );
-      expect(result).toEqual([mockProduct]);
+      expect(result).toEqual({
+        data: [mockProduct],
+        meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      });
     });
 
-    it('should append categoryId query param when provided', async () => {
-      mockFetch.mockReturnValue(jsonResponse([mockProduct]));
+    it('should append categoryId, page and limit query params when provided', async () => {
+      mockFetch.mockReturnValue(
+        jsonResponse({ data: [mockProduct], meta: { page: 2, limit: 5, total: 6, totalPages: 2 } }),
+      );
 
-      const result = await getProducts(1);
+      const result = await getProducts({ categoryId: 1, page: 2, limit: 5 });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/products?categoryId=1'),
+        expect.stringContaining('/products?categoryId=1&page=2&limit=5'),
         expect.objectContaining({ cache: 'no-store' }),
       );
-      expect(result).toEqual([mockProduct]);
+      expect(result).toEqual({
+        data: [mockProduct],
+        meta: { page: 2, limit: 5, total: 6, totalPages: 2 },
+      });
     });
   });
 

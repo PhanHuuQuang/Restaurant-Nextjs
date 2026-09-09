@@ -11,10 +11,12 @@ describe('ProductsService', () => {
       findMany: jest.Mock;
       findFirst: jest.Mock;
       update: jest.Mock;
+      count: jest.Mock;
     };
     productOption: {
       deleteMany: jest.Mock;
     };
+    $transaction: jest.Mock;
   };
 
   const mockProduct = {
@@ -45,10 +47,12 @@ describe('ProductsService', () => {
         findMany: jest.fn(),
         findFirst: jest.fn(),
         update: jest.fn(),
+        count: jest.fn(),
       },
       productOption: {
         deleteMany: jest.fn(),
       },
+      $transaction: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -117,30 +121,60 @@ describe('ProductsService', () => {
   });
 
   describe('findAll', () => {
-    it('should return all non-deleted products without categoryId filter', async () => {
-      prisma.product.findMany.mockResolvedValue([mockProductWithOptions]);
+    it('should return paginated products without categoryId filter', async () => {
+      prisma.$transaction.mockResolvedValue([[mockProductWithOptions], 15]);
 
-      const result = await service.findAll();
+      const result = await service.findAll({ page: 1, limit: 10 });
 
       expect(prisma.product.findMany).toHaveBeenCalledWith({
+        skip: 0,
+        take: 10,
         where: { deletedAt: null },
         include: { options: true },
         orderBy: { createdAt: 'asc' },
       });
-      expect(result).toEqual([mockProductWithOptions]);
+      expect(prisma.product.count).toHaveBeenCalledWith({
+        where: { deletedAt: null },
+      });
+      expect(result).toEqual({
+        data: [mockProductWithOptions],
+        meta: { page: 1, limit: 10, total: 15, totalPages: 2 },
+      });
     });
 
-    it('should filter products by categoryId', async () => {
-      prisma.product.findMany.mockResolvedValue([mockProductWithOptions]);
+    it('should apply pagination and categoryId filter', async () => {
+      prisma.$transaction.mockResolvedValue([[mockProductWithOptions], 11]);
 
-      const result = await service.findAll(1);
+      const result = await service.findAll({
+        page: 2,
+        limit: 5,
+        categoryId: 1,
+      });
 
       expect(prisma.product.findMany).toHaveBeenCalledWith({
+        skip: 5,
+        take: 5,
         where: { deletedAt: null, categoryId: 1 },
         include: { options: true },
         orderBy: { createdAt: 'asc' },
       });
-      expect(result).toEqual([mockProductWithOptions]);
+      expect(result.meta).toEqual({
+        page: 2,
+        limit: 5,
+        total: 11,
+        totalPages: 3,
+      });
+    });
+
+    it('should return empty data with zero meta when no products', async () => {
+      prisma.$transaction.mockResolvedValue([[], 0]);
+
+      const result = await service.findAll({ page: 1, limit: 10 });
+
+      expect(result).toEqual({
+        data: [],
+        meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
+      });
     });
   });
 
