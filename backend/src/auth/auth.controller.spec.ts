@@ -11,6 +11,7 @@ describe('AuthController', () => {
     getProfile: jest.Mock;
     updateProfile: jest.Mock;
   };
+  let res: { cookie: jest.Mock; clearCookie: jest.Mock; redirect: jest.Mock };
 
   beforeEach(async () => {
     authService = {
@@ -19,6 +20,11 @@ describe('AuthController', () => {
       signToken: jest.fn(),
       getProfile: jest.fn(),
       updateProfile: jest.fn(),
+    };
+    res = {
+      cookie: jest.fn(),
+      clearCookie: jest.fn(),
+      redirect: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -34,30 +40,65 @@ describe('AuthController', () => {
   });
 
   describe('register', () => {
-    it('should call authService.register with dto', async () => {
+    it('should call authService.register and set token cookie', async () => {
       const dto = {
         name: 'John',
         email: 'john@test.com',
         password: 'password123',
       };
-      authService.register.mockResolvedValue({ accessToken: 'token' });
+      const user = {
+        id: 1,
+        name: 'John',
+        email: 'john@test.com',
+        role: 'USER',
+      };
+      authService.register.mockResolvedValue(user);
+      authService.signToken.mockReturnValue({ accessToken: 'token' });
 
-      const result = await controller.register(dto);
+      const result = await controller.register(dto, res as any);
 
       expect(authService.register).toHaveBeenCalledWith(dto);
-      expect(result).toEqual({ accessToken: 'token' });
+      expect(authService.signToken).toHaveBeenCalledWith(user);
+      expect(res.cookie).toHaveBeenCalledWith(
+        'token',
+        'token',
+        expect.any(Object),
+      );
+      expect(result).toEqual(user);
     });
   });
 
   describe('login', () => {
-    it('should call authService.login with email and password', async () => {
+    it('should call authService.login and set token cookie', async () => {
       const dto = { email: 'john@test.com', password: 'password123' };
-      authService.login.mockResolvedValue({ accessToken: 'token' });
+      const user = {
+        id: 1,
+        name: 'John',
+        email: 'john@test.com',
+        role: 'USER',
+      };
+      authService.login.mockResolvedValue(user);
+      authService.signToken.mockReturnValue({ accessToken: 'token' });
 
-      const result = await controller.login(dto);
+      const result = await controller.login(dto, res as any);
 
       expect(authService.login).toHaveBeenCalledWith(dto.email, dto.password);
-      expect(result).toEqual({ accessToken: 'token' });
+      expect(res.cookie).toHaveBeenCalledWith(
+        'token',
+        'token',
+        expect.any(Object),
+      );
+      expect(result).toEqual(user);
+    });
+  });
+
+  describe('logout', () => {
+    it('should clear the token cookie', () => {
+      const result = controller.logout(res as any);
+
+      expect(res.clearCookie).toHaveBeenCalledWith('token', expect.any(Object));
+      expect(res.cookie).not.toHaveBeenCalled();
+      expect(result).toEqual({ success: true });
     });
   });
 
@@ -109,16 +150,20 @@ describe('AuthController', () => {
   });
 
   describe('googleAuthCallback', () => {
-    it('should redirect with token', () => {
+    it('should set token cookie and redirect without token in query', () => {
       const req = { user: { id: 1, email: 'john@test.com', role: 'USER' } };
-      const res = { redirect: jest.fn() };
       authService.signToken.mockReturnValue({ accessToken: 'google-token' });
 
       controller.googleAuthCallback(req, res as any);
 
       expect(authService.signToken).toHaveBeenCalledWith(req.user);
+      expect(res.cookie).toHaveBeenCalledWith(
+        'token',
+        'google-token',
+        expect.any(Object),
+      );
       expect(res.redirect).toHaveBeenCalledWith(
-        'http://localhost:3000/auth/callback?token=google-token',
+        'http://localhost:3000/auth/callback',
       );
     });
   });

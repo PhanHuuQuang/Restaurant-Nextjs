@@ -13,7 +13,7 @@ type Props = {
 };
 
 const Profile = ({ open, onClose }: Props) => {
-  const { user, token, setUser, logout } = useAuth();
+  const { user, setUser, logout } = useAuth();
   const [editing, setEditing] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -26,12 +26,11 @@ const Profile = ({ open, onClose }: Props) => {
   console.log(user);
 
   const handleSave = async (field: string, value: string) => {
-    if (!token) return;
     setLoading(true);
     setError("");
     try {
       const payload = { [field]: value };
-      const updated = await updateProfile(token, payload);
+      const updated = await updateProfile(payload);
       setUser(updated);
       setEditingField(null);
     } catch (e: any) {
@@ -48,12 +47,12 @@ const Profile = ({ open, onClose }: Props) => {
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !token) return;
+    if (!file) return;
 
     setUploadingAvatar(true);
     setError("");
     try {
-      const updated = await uploadAvatar(token, file);
+      const updated = await uploadAvatar(file);
       setUser(updated);
     } catch (e: any) {
       console.warn(e.message);

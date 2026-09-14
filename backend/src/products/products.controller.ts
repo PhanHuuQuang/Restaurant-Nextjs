@@ -20,11 +20,11 @@ import { RolesGuard } from '../shared/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('products')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   create(@Body() createProductDto: CreateProductDto) {
     return this.productsService.create(createProductDto);
@@ -46,6 +46,7 @@ export class ProductsController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -55,6 +56,7 @@ export class ProductsController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.remove(id);

@@ -31,19 +31,21 @@ describe('Auth (e2e)', () => {
   });
 
   describe('/auth/register (POST)', () => {
-    it('should register a new user and return accessToken', () => {
-      return request(app.getHttpServer())
+    it('should register a new user and set an httpOnly token cookie', async () => {
+      const res = await request(app.getHttpServer())
         .post('/auth/register')
         .send({
           name: 'Test User',
           email: 'test@example.com',
           password: 'password123',
         })
-        .expect(201)
-        .expect((res) => {
-          expect(res.body.accessToken).toBeDefined();
-          expect(typeof res.body.accessToken).toBe('string');
-        });
+        .expect(201);
+
+      expect(res.body.email).toBe('test@example.com');
+      expect(res.body.password).toBeUndefined();
+      const setCookie = res.headers['set-cookie'] as unknown as string[];
+      expect(setCookie[0]).toContain('token=');
+      expect(setCookie[0]).toContain('HttpOnly');
     });
 
     it('should return 409 if email already exists', async () => {
@@ -108,17 +110,20 @@ describe('Auth (e2e)', () => {
       });
     });
 
-    it('should login and return accessToken', () => {
-      return request(app.getHttpServer())
+    it('should login and set an httpOnly token cookie', async () => {
+      const res = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
           email: 'login@example.com',
           password: 'password123',
         })
-        .expect(201)
-        .expect((res) => {
-          expect(res.body.accessToken).toBeDefined();
-        });
+        .expect(201);
+
+      expect(res.body.email).toBe('login@example.com');
+      expect(res.body.password).toBeUndefined();
+      const setCookie = res.headers['set-cookie'] as unknown as string[];
+      expect(setCookie[0]).toContain('token=');
+      expect(setCookie[0]).toContain('HttpOnly');
     });
 
     it('should return 401 for wrong password', () => {
@@ -143,7 +148,7 @@ describe('Auth (e2e)', () => {
   });
 
   describe('/auth/profile (GET)', () => {
-    it('should return user profile with valid token', async () => {
+    it('should return user profile with valid cookie', async () => {
       const loginRes = await request(app.getHttpServer())
         .post('/auth/register')
         .send({
@@ -152,11 +157,11 @@ describe('Auth (e2e)', () => {
           password: 'password123',
         });
 
-      const token = loginRes.body.accessToken;
+      const cookies = loginRes.headers['set-cookie'] as unknown as string[];
 
       return request(app.getHttpServer())
         .get('/auth/profile')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Cookie', cookies)
         .expect(200)
         .expect((res) => {
           expect(res.body.email).toBe('profile@example.com');
@@ -164,8 +169,36 @@ describe('Auth (e2e)', () => {
         });
     });
 
+    it('should return user profile with valid Bearer token', async () => {
+      const loginRes = await request(app.getHttpServer())
+        .post('/auth/register')
+        .send({
+          name: 'Bearer User',
+          email: 'bearer@example.com',
+          password: 'password123',
+        });
+
+      const cookies = loginRes.headers['set-cookie'] as unknown as string[];
+      const token = String(cookies[0]).split(';')[0].split('=')[1];
+
+      return request(app.getHttpServer())
+        .get('/auth/profile')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.email).toBe('bearer@example.com');
+        });
+    });
+
     it('should return 401 without token', () => {
       return request(app.getHttpServer()).get('/auth/profile').expect(401);
+    });
+
+    it('should return 401 with invalid cookie', () => {
+      return request(app.getHttpServer())
+        .get('/auth/profile')
+        .set('Cookie', 'token=invalid-token')
+        .expect(401);
     });
 
     it('should return 401 with invalid token', () => {
@@ -173,6 +206,18 @@ describe('Auth (e2e)', () => {
         .get('/auth/profile')
         .set('Authorization', 'Bearer invalid-token')
         .expect(401);
+    });
+  });
+
+  describe('/auth/logout (POST)', () => {
+    it('should clear the token cookie', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/auth/logout')
+        .expect(201);
+
+      const setCookie = res.headers['set-cookie'] as unknown as string[];
+      expect(setCookie[0]).toContain('token=');
+      expect(res.body).toEqual({ success: true });
     });
   });
 });

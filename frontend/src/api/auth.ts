@@ -1,4 +1,4 @@
-import { API_BASE_URL, apiClient } from "./client";
+import { apiClient } from "./client";
 
 export type User = {
   id: number;
@@ -7,10 +7,6 @@ export type User = {
   phone?: string;
   image?: string;
   role: string;
-};
-
-export type AuthResponse = {
-  accessToken: string;
 };
 
 export type RegisterInput = {
@@ -25,35 +21,22 @@ export type LoginInput = {
   password: string;
 };
 
-export async function register(data: RegisterInput): Promise<AuthResponse> {
-  return apiClient<AuthResponse>("/auth/register", {
+export async function register(data: RegisterInput): Promise<User> {
+  return apiClient<User>("/auth/register", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
 
-export async function login(data: LoginInput): Promise<AuthResponse> {
-  return apiClient<AuthResponse>("/auth/login", {
+export async function login(data: LoginInput): Promise<User> {
+  return apiClient<User>("/auth/login", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
 
-export async function getProfile(token: string): Promise<User> {
-  return apiClient<User>("/auth/profile", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
-export async function refreshToken(token: string): Promise<AuthResponse> {
-  return apiClient<AuthResponse>("/auth/refresh", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export async function getProfile(): Promise<User> {
+  return apiClient<User>("/auth/profile");
 }
 
 export type UpdateProfileInput = {
@@ -61,35 +44,24 @@ export type UpdateProfileInput = {
   phone?: string;
 };
 
-export async function updateProfile(
-  token: string,
-  data: UpdateProfileInput,
-): Promise<User> {
+export async function updateProfile(data: UpdateProfileInput): Promise<User> {
   return apiClient<User>("/auth/profile", {
     method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(data),
   });
 }
 
-export async function uploadAvatar(token: string, file: File): Promise<User> {
+export async function uploadAvatar(file: File): Promise<User> {
   const formData = new FormData();
   formData.append("avatar", file);
-
-  const res = await fetch(`${API_BASE_URL}/auth/profile/avatar`, {
+  return apiClient<User>("/auth/profile/avatar", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
     body: formData,
   });
+}
 
-  if (!res.ok) {
-    const message = await res.text();
-    throw new Error(message || "Failed to upload avatar");
-  }
-
-  return res.json() as Promise<User>;
+export async function logout(): Promise<void> {
+  await apiClient<{ success: boolean }>("/auth/logout", {
+    method: "POST",
+  });
 }

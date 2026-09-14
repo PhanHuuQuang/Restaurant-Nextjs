@@ -45,7 +45,6 @@ const renderWithAuth = () => {
     <AuthContext.Provider
       value={{
         user: null,
-        token: null,
         loading: false,
         setUser: vi.fn(),
         login: vi.fn(),
@@ -99,26 +98,24 @@ describe("LoginPage", () => {
     expect(screen.getByRole("button", { name: "Login" })).toBeDefined();
   });
 
-  it("should show RegisterForm when clicking Register from LoginForm", () => {
+  it("should show RegisterForm when clicking Register from options", () => {
     renderWithAuth();
     fireEvent.click(screen.getByText("Sign in with Account"));
+    fireEvent.click(screen.getByText("Back to options"));
     fireEvent.click(screen.getByRole("button", { name: /register/i }));
-    expect(
-      screen.getByRole("heading", { name: /create account/i }),
-    ).toBeDefined();
     expect(screen.getByPlaceholderText("Name")).toBeDefined();
     expect(screen.getByPlaceholderText("Phone (optional)")).toBeDefined();
     expect(screen.getByRole("button", { name: "Register" })).toBeDefined();
   });
 
-  it("should switch back to LoginForm from RegisterForm", () => {
+  it("should switch to LoginForm after backing out of RegisterForm", () => {
     renderWithAuth();
     fireEvent.click(screen.getByText("Sign in with Account"));
+    fireEvent.click(screen.getByText("Back to options"));
     fireEvent.click(screen.getByRole("button", { name: /register/i }));
-    expect(
-      screen.getByRole("heading", { name: /create account/i }),
-    ).toBeDefined();
-    fireEvent.click(screen.getByRole("button", { name: /login$/i }));
+    expect(screen.getByPlaceholderText("Name")).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: /back to logins/i }));
+    fireEvent.click(screen.getByText("Sign in with Account"));
     expect(
       screen.getByRole("heading", { name: /welcome back/i }),
     ).toBeDefined();
@@ -136,9 +133,10 @@ describe("LoginPage", () => {
   it("should go back to options from RegisterForm", () => {
     renderWithAuth();
     fireEvent.click(screen.getByText("Sign in with Account"));
+    fireEvent.click(screen.getByText("Back to options"));
     fireEvent.click(screen.getByRole("button", { name: /register/i }));
     expect(screen.queryByText("Sign in with Account")).toBeNull();
-    fireEvent.click(screen.getByText("Back to options"));
+    fireEvent.click(screen.getByRole("button", { name: /back to logins/i }));
     expect(screen.getByText("Sign in with Account")).toBeDefined();
   });
 });

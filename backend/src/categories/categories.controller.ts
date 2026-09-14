@@ -17,11 +17,11 @@ import { RolesGuard } from '../shared/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('categories')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.create(createCategoryDto);
@@ -38,6 +38,7 @@ export class CategoriesController {
   }
 
   @Patch(':slug')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   update(
     @Param('slug') slug: string,
@@ -47,6 +48,7 @@ export class CategoriesController {
   }
 
   @Delete(':slug')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   remove(@Param('slug') slug: string) {
     return this.categoriesService.remove(slug);

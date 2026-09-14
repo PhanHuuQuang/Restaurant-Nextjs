@@ -32,7 +32,6 @@ const renderWithAuth = (user: null | { id: number; name: string; email: string; 
     <AuthContext.Provider
       value={{
         user,
-        token: user ? 'mock-token' : null,
         loading: false,
         setUser: vi.fn(),
         login: vi.fn(),
@@ -47,12 +46,12 @@ const renderWithAuth = (user: null | { id: number; name: string; email: string; 
 describe('NavBar', () => {
   it('should render the restaurant name', () => {
     renderWithAuth();
-    expect(screen.getByText('MyRestaurant')).toBeDefined();
+    expect(screen.getByText('My Restaurant')).toBeDefined();
   });
 
   it('should render homepage link', () => {
     renderWithAuth();
-    const links = screen.getAllByText('Homepage');
+    const links = screen.getAllByText('Home');
     expect(links.length).toBeGreaterThan(0);
     expect(links[0].getAttribute('href')).toBe('/');
   });

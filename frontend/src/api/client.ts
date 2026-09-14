@@ -17,14 +17,27 @@ export async function apiClient<T>(
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     cache: "no-store",
+    credentials: "include",
     headers: {
-      "Content-Type": "application/json",
+      ...(options.body instanceof FormData
+        ? {}
+        : { "Content-Type": "application/json" }),
       ...options.headers,
     },
   });
 
   if (!res.ok) {
-    const message = await res.text();
+    let message = await res.text();
+    try {
+      const data = JSON.parse(message) as { message?: string | string[] };
+      if (typeof data?.message === "string") {
+        message = data.message;
+      } else if (Array.isArray(data?.message)) {
+        message = data.message.join(", ");
+      }
+    } catch {
+      // Body is not JSON; keep the raw text.
+    }
     throw new ApiError(res.status, message || res.statusText);
   }
 

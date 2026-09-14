@@ -8,15 +8,13 @@ import {
   useCallback,
 } from "react";
 import { useRouter } from "next/navigation";
-import { getProfile, type User } from "@/api/auth";
-import { getToken, setToken, removeToken } from "@/lib/token";
+import { getProfile, logout as apiLogout, type User } from "@/api/auth";
 
 type AuthContextType = {
   user: User | null;
-  token: string | null;
   loading: boolean;
   setUser: (user: User | null) => void;
-  login: (token: string) => Promise<void>;
+  login: () => Promise<void>;
   logout: () => void;
 };
 
@@ -24,43 +22,30 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setTokenState] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const stored = getToken();
-    if (stored) {
-      setTokenState(stored);
-      getProfile(stored)
-        .then(setUser)
-        .catch(() => {
-          removeToken();
-          setTokenState(null);
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    getProfile()
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
   }, []);
 
-  const login = useCallback(async (newToken: string) => {
-    setToken(newToken);
-    setTokenState(newToken);
-    const profile = await getProfile(newToken);
+  const login = useCallback(async () => {
+    const profile = await getProfile();
     setUser(profile);
   }, []);
 
   const logout = useCallback(() => {
-    removeToken();
-    setTokenState(null);
+    void apiLogout().catch(() => {});
     setUser(null);
     router.push("/");
   }, [router]);
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, setUser, login, logout }}
+      value={{ user, loading, setUser, login, logout }}
     >
       {children}
     </AuthContext.Provider>
