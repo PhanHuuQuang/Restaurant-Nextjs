@@ -70,29 +70,44 @@ const Form = () => {
 
       {view === "login" && (
         <>
-          <h1 className="font-bold text-xl xl:text-2xl">Welcome Back</h1>
-          <p>Log into your account</p>
+          <div>
+            <h1 className="font-bold text-xl xl:text-2xl">Welcome Back</h1>
+            <p>Log into your account</p>
+          </div>
           <LoginForm
-            onSwitchToRegister={() => setView("register")}
             onBack={() => setView("options")}
           />
         </>
       )}
 
       {view === "register" && (
-        <RegisterForm
-          onSwitchToLogin={() => setView("login")}
-          onBack={() => setView("options")}
-        />
+        <>
+          <RegisterForm
+            onSwitchToLogin={() => setView("login")}
+            onBack={() => setView("options")}
+          />
+        </>
       )}
 
       {view === "options" && (
-        <p className="text-sm">
-          Have a problem?{" "}
-          <Link className="underline" href="/">
-            Contact us
-          </Link>
-        </p>
+        <div className="text-center">
+          <p className="text-sm text-center">
+            Don&apos;t have an account?{" "}
+            <button
+              type="button"
+              onClick={() => setView("register")}
+              className="underline text-red-500"
+            >
+              Register
+            </button>
+          </p>
+          <p className="text-sm">
+            Have a problem?{" "}
+            <Link className="underline" href="/">
+              Contact us
+            </Link>
+          </p>
+        </div>
       )}
     </div>
   );

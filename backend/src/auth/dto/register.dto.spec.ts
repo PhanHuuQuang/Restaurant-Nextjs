@@ -19,8 +19,19 @@ describe('RegisterDto', () => {
     expect(errors.length).toBe(0);
   });
 
-  it('should pass with optional phone', async () => {
+  it('should pass with a valid Vietnamese phone number', async () => {
+    const errors = await validateDto({ ...validDto, phone: '0912345678' });
+    expect(errors.length).toBe(0);
+  });
+
+  it('should fail with an invalid phone number', async () => {
     const errors = await validateDto({ ...validDto, phone: '1234567890' });
+    const phoneError = errors.find((e) => e.property === 'phone');
+    expect(phoneError).toBeDefined();
+  });
+
+  it('should pass with an empty string phone', async () => {
+    const errors = await validateDto({ ...validDto, phone: '' });
     expect(errors.length).toBe(0);
   });
 

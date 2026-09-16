@@ -36,7 +36,7 @@ export class AuthService {
       data: { ...rest, password: await bcrypt.hash(password, 10) },
       select: userSelect,
     });
-    return this.signToken(user);
+    return user;
   }
 
   async login(email: string, password: string) {
@@ -44,7 +44,14 @@ export class AuthService {
     if (!user?.password || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    return this.signToken(user);
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      image: user.image,
+      role: user.role,
+    };
   }
 
   async getProfile(userId: number) {

@@ -29,6 +29,7 @@ describe('apiClient', () => {
       expect.stringContaining('/test'),
       expect.objectContaining({
         cache: 'no-store',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
       }),
     );
@@ -66,6 +67,26 @@ describe('apiClient', () => {
         method: 'POST',
         body: JSON.stringify({ a: 1 }),
         cache: 'no-store',
+        credentials: 'include',
+      }),
+    );
+  });
+
+  it('should not set Content-Type header for FormData body', async () => {
+    const data = { id: 1 };
+    mockFetch.mockReturnValue(jsonResponse(data));
+
+    const formData = new FormData();
+    formData.append('avatar', new File(['x'], 'a.png', { type: 'image/png' }));
+
+    await apiClient('/upload', { method: 'POST', body: formData });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/upload'),
+      expect.objectContaining({
+        method: 'POST',
+        credentials: 'include',
+        headers: {},
       }),
     );
   });
@@ -84,6 +105,29 @@ describe('apiClient', () => {
     } catch (err) {
       expect(err).toBeInstanceOf(ApiError);
       expect((err as ApiError).status).toBe(401);
+    }
+  });
+
+  it('should extract readable message from JSON error body', async () => {
+    mockFetch.mockReturnValue(
+      jsonResponse(
+        {
+          message: ['Phone must be a valid Vietnamese phone number'],
+          error: 'Bad Request',
+          statusCode: 400,
+        },
+        400,
+      ),
+    );
+
+    try {
+      await apiClient('/test');
+    } catch (err) {
+      expect(err).toBeInstanceOf(ApiError);
+      expect((err as ApiError).status).toBe(400);
+      expect((err as ApiError).message).toBe(
+        'Phone must be a valid Vietnamese phone number',
+      );
     }
   });
 

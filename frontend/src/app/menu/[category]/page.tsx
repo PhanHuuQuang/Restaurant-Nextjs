@@ -1,13 +1,21 @@
 import { getCategory } from "@/api/categories";
 import Image from "next/image";
 import Link from "next/link";
+import { CategoryGridSkeleton } from "@/components/Skeleton";
 
 const CategoryPage = async ({
   params,
 }: {
-  params: Promise<{ category: string }>;
+  params: Promise<{ category: string; }>;
 }) => {
-  const { products } = await getCategory((await params).category);
+  let products: Awaited<ReturnType<typeof getCategory>>["products"] = [];
+  try {
+    ({ products } = await getCategory((await params).category));
+  } catch {
+    return (
+      <CategoryGridSkeleton error="Unable to load this category. Please try again later." />
+    );
+  }
   return (
     <div className="flex flex-wrap text-red-500">
       {products.map((item) => (

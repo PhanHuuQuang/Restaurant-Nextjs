@@ -44,7 +44,7 @@ describe('AuthService', () => {
       password: 'password123',
     };
 
-    it('should register a new user and return token', async () => {
+    it('should register a new user and return the user without password', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
       prisma.user.create.mockResolvedValue({
@@ -53,7 +53,6 @@ describe('AuthService', () => {
         email: 'john@test.com',
         role: 'USER',
       });
-      jwt.sign.mockReturnValue('jwt-token');
 
       const result = await service.register(dto);
 
@@ -72,7 +71,12 @@ describe('AuthService', () => {
           role: true,
         },
       });
-      expect(result).toEqual({ accessToken: 'jwt-token' });
+      expect(result).toEqual({
+        id: 1,
+        name: 'John',
+        email: 'john@test.com',
+        role: 'USER',
+      });
     });
 
     it('should throw ConflictException if email already exists', async () => {
@@ -87,16 +91,16 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    it('should return a token for valid credentials', async () => {
+    it('should return the user without password for valid credentials', async () => {
       const user = {
         id: 1,
+        name: 'John',
         email: 'john@test.com',
         password: 'hashed',
         role: 'USER',
       };
       prisma.user.findUnique.mockResolvedValue(user);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      jwt.sign.mockReturnValue('jwt-token');
 
       const result = await service.login('john@test.com', 'password123');
 
@@ -104,7 +108,12 @@ describe('AuthService', () => {
         where: { email: 'john@test.com' },
       });
       expect(bcrypt.compare).toHaveBeenCalledWith('password123', 'hashed');
-      expect(result).toEqual({ accessToken: 'jwt-token' });
+      expect(result).toEqual({
+        id: 1,
+        name: 'John',
+        email: 'john@test.com',
+        role: 'USER',
+      });
     });
 
     it('should throw UnauthorizedException if user not found', async () => {

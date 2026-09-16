@@ -17,6 +17,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { GoogleOauthGuard } from './guards/google-oauth.guard';
+import { TOKEN_COOKIE_NAME, tokenCookieOptions } from './auth-cookies';
 import { Response } from 'express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -26,13 +27,31 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  async register(
+    @Body() dto: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const user = await this.authService.register(dto);
+    const { accessToken } = this.authService.signToken(user);
+    res.cookie(TOKEN_COOKIE_NAME, accessToken, tokenCookieOptions());
+    return user;
   }
 
   @Post('login')
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto.email, dto.password);
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const user = await this.authService.login(dto.email, dto.password);
+    const { accessToken } = this.authService.signToken(user);
+    res.cookie(TOKEN_COOKIE_NAME, accessToken, tokenCookieOptions());
+    return user;
+  }
+
+  @Post('logout')
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie(TOKEN_COOKIE_NAME, { httpOnly: true, path: '/' });
+    return { success: true };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -82,6 +101,7 @@ export class AuthController {
   googleAuthCallback(@Req() req, @Res() res: Response) {
     const token = this.authService.signToken(req.user);
     const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
-    res.redirect(`${frontendUrl}/auth/callback?token=${token.accessToken}`);
+    res.cookie(TOKEN_COOKIE_NAME, token.accessToken, tokenCookieOptions());
+    res.redirect(`${frontendUrl}/auth/callback`);
   }
 }

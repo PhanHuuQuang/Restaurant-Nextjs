@@ -9,8 +9,8 @@ import { Role, Status } from '../prisma/generated/prisma/enums';
 describe('Orders Admin (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  let adminToken: string;
-  let userToken: string;
+  let adminCookie: string;
+  let userCookie: string;
   let productId: number;
   let orderId: number;
 
@@ -65,13 +65,17 @@ describe('Orders Admin (e2e)', () => {
       .post('/auth/login')
       .send({ email: 'admin@example.com', password: 'password123' })
       .expect(201);
-    adminToken = adminLogin.body.accessToken;
+    adminCookie = (
+      adminLogin.headers['set-cookie'] as unknown as string[]
+    ).join('; ');
 
     const userLogin = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ email: 'user@example.com', password: 'password123' })
       .expect(201);
-    userToken = userLogin.body.accessToken;
+    userCookie = (userLogin.headers['set-cookie'] as unknown as string[]).join(
+      '; ',
+    );
 
     const category = await prisma.category.create({
       data: { slug: 'test', title: 'Test' },
@@ -108,7 +112,7 @@ describe('Orders Admin (e2e)', () => {
     it('should return paginated orders for admin', async () => {
       const res = await request(app.getHttpServer())
         .get('/orders')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', adminCookie)
         .expect(200);
 
       expect(res.body.data).toHaveLength(1);
@@ -127,7 +131,7 @@ describe('Orders Admin (e2e)', () => {
     it('should return 403 for regular user', async () => {
       await request(app.getHttpServer())
         .get('/orders')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', userCookie)
         .expect(403);
     });
 
@@ -140,7 +144,7 @@ describe('Orders Admin (e2e)', () => {
     it('should transition PENDING to PAID for admin', async () => {
       const res = await request(app.getHttpServer())
         .patch(`/orders/${orderId}/status`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', adminCookie)
         .send({ status: 'PAID' })
         .expect(200);
 
@@ -150,7 +154,7 @@ describe('Orders Admin (e2e)', () => {
     it('should return 400 for invalid transition (PENDING to DELIVERED)', async () => {
       await request(app.getHttpServer())
         .patch(`/orders/${orderId}/status`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', adminCookie)
         .send({ status: 'DELIVERED' })
         .expect(400);
     });
@@ -158,7 +162,7 @@ describe('Orders Admin (e2e)', () => {
     it('should return 400 for invalid status value', async () => {
       await request(app.getHttpServer())
         .patch(`/orders/${orderId}/status`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', adminCookie)
         .send({ status: 'INVALID' })
         .expect(400);
     });
@@ -166,7 +170,7 @@ describe('Orders Admin (e2e)', () => {
     it('should return 404 for non-existent order', async () => {
       await request(app.getHttpServer())
         .patch('/orders/99999/status')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', adminCookie)
         .send({ status: 'PAID' })
         .expect(404);
     });
@@ -174,7 +178,7 @@ describe('Orders Admin (e2e)', () => {
     it('should return 403 for regular user', async () => {
       await request(app.getHttpServer())
         .patch(`/orders/${orderId}/status`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', userCookie)
         .send({ status: 'PAID' })
         .expect(403);
     });

@@ -1,13 +1,21 @@
 import { getProduct } from "@/api/products";
 import Price from "@/components/Price";
 import Image from "next/image";
+import { ProductPageSkeleton } from "@/components/Skeleton";
 
 const SingleProductPage = async ({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; }>;
 }) => {
-  const singleProduct = await getProduct(Number((await params).id));
+  let singleProduct: Awaited<ReturnType<typeof getProduct>> | null = null;
+  try {
+    singleProduct = await getProduct(Number((await params).id));
+  } catch {
+    return (
+      <ProductPageSkeleton error="Unable to load this product. Please try again later." />
+    );
+  }
   return (
     <div className="p-4 lg:px-20 xl:px-40 h-screen flex flex-col justify-around text-red-500 md:flex-row md:gap-8 md:items-center">
       {/* IMAGE CONTAINER */}

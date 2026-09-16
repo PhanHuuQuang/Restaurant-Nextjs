@@ -1,8 +1,16 @@
 import { getFeaturedProducts } from "@/api/products";
 import Image from "next/image";
+import { FeaturedSkeleton } from "./Skeleton";
 
 const Featured = async () => {
-  const featuredProducts = await getFeaturedProducts();
+  let featuredProducts: Awaited<ReturnType<typeof getFeaturedProducts>> = [];
+  try {
+    featuredProducts = await getFeaturedProducts();
+  } catch {
+    return (
+      <FeaturedSkeleton error="Unable to load featured products. Please try again later." />
+    );
+  }
   return (
     <div className="w-full overflow-x-scroll text-red-500">
       {/* WRAPPER */}

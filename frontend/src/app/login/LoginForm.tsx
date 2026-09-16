@@ -6,11 +6,10 @@ import { login as apiLogin, type LoginInput } from "@/api/auth";
 import { useAuth } from "@/context/AuthContext";
 
 type Props = {
-  onSwitchToRegister: () => void;
   onBack: () => void;
 };
 
-const LoginForm = ({ onSwitchToRegister, onBack }: Props) => {
+const LoginForm = ({ onBack }: Props) => {
   const [inputs, setInputs] = useState<LoginInput>({
     email: "",
     password: "",
@@ -30,8 +29,8 @@ const LoginForm = ({ onSwitchToRegister, onBack }: Props) => {
     setLoading(true);
 
     try {
-      const res = await apiLogin(inputs);
-      await login(res.accessToken);
+      await apiLogin(inputs);
+      await login();
       router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
@@ -69,16 +68,6 @@ const LoginForm = ({ onSwitchToRegister, onBack }: Props) => {
       >
         {loading ? "Logging in..." : "Login"}
       </button>
-      <p className="text-sm text-center">
-        Don&apos;t have an account?{" "}
-        <button
-          type="button"
-          onClick={onSwitchToRegister}
-          className="underline text-red-500"
-        >
-          Register
-        </button>
-      </p>
       <button
         type="button"
         onClick={onBack}

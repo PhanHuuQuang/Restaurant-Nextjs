@@ -39,7 +39,6 @@ const renderWithAuth = (user: null | { id: number; name: string; email: string; 
     <AuthContext.Provider
       value={{
         user,
-        token: user ? 'mock-token' : null,
         loading: false,
         setUser: vi.fn(),
         login: vi.fn(),
