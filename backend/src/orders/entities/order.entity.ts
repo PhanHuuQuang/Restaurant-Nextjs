@@ -1,6 +1,7 @@
 import {
   Order,
   OrderItem,
+  PaymentMethod,
   Status,
   User,
 } from '../../../prisma/generated/prisma/client';
@@ -14,6 +15,7 @@ export class OrderEntity implements Order {
   serviceCost: Decimal;
   total: Decimal;
   status: Status;
+  paymentMethod: PaymentMethod;
   address: string;
   phone: string;
   user: User;

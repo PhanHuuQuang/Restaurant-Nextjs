@@ -9,5 +9,6 @@ export class UpdateProfileDto {
     message: 'Phone must be a valid Vietnamese phone number',
   })
   phone?: string;
+  @IsOptional() @IsString() address?: string;
   @IsOptional() @IsString() image?: string;
 }

@@ -7,7 +7,7 @@ import {
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PaginationQueryDto } from '../shared/dto/pagination-query.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { Role, Status } from '../../prisma/generated/prisma/enums';
+import { PaymentMethod, Role, Status } from '../../prisma/generated/prisma/enums';
 
 const ALLOWED_TRANSITIONS: Record<Status, Status[]> = {
   [Status.PENDING]: [Status.PAID, Status.CANCELLED],
@@ -18,7 +18,11 @@ const ALLOWED_TRANSITIONS: Record<Status, Status[]> = {
 
 const orderWithItems = {
   include: {
-    items: true,
+    items: {
+      include: {
+        product: { select: { id: true, title: true, img: true } },
+      },
+    },
     user: { select: { id: true, name: true, email: true } },
   },
 } as const;
@@ -77,6 +81,7 @@ export class OrdersService {
           serviceCost,
           deliveryCost,
           total,
+          paymentMethod: createOrderDto.paymentMethod ?? PaymentMethod.CASH,
           address: createOrderDto.address,
           phone: createOrderDto.phone,
           items: { create: orderItems },
