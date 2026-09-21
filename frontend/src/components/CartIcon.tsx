@@ -1,11 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useCart } from "@/context/CartContext";
 
 type CartIconProp = {
   onClick?: () => void;
 };
 
 const CartIcon = ({ onClick }: CartIconProp) => {
+  const { totalQuantity } = useCart();
+
   return (
     <Link href="/cart" className="flex gap-1" onClick={onClick}>
       <div className="relative w-8 h-8 md:w-5 md:h-5">
@@ -16,7 +19,7 @@ const CartIcon = ({ onClick }: CartIconProp) => {
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
       </div>
-      <span>Cart(3)</span>
+      <span>Cart({totalQuantity})</span>
     </Link>
   );
 };

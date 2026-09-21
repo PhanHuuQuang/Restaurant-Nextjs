@@ -68,6 +68,7 @@ describe('AuthService', () => {
           email: true,
           phone: true,
           image: true,
+          address: true,
           role: true,
         },
       });

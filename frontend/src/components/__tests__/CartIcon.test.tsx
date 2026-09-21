@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import CartIcon from '../CartIcon';
+import { CartProvider } from '../../context/CartContext';
 
 vi.mock('next/image', () => ({
   default: (props: Record<string, unknown>) => {
@@ -14,22 +15,30 @@ vi.mock('next/link', () => ({
   },
 }));
 
+function renderIcon(onClick?: () => void) {
+  return render(
+    <CartProvider>
+      <CartIcon onClick={onClick} />
+    </CartProvider>,
+  );
+}
+
 describe('CartIcon', () => {
   it('should render cart text with count', () => {
-    render(<CartIcon />);
-    expect(screen.getByText('Cart(3)')).toBeDefined();
+    renderIcon();
+    expect(screen.getByText('Cart(0)')).toBeDefined();
   });
 
   it('should link to cart page', () => {
-    render(<CartIcon />);
-    const link = screen.getByText('Cart(3)').closest('a');
+    renderIcon();
+    const link = screen.getByText('Cart(0)').closest('a');
     expect(link?.getAttribute('href')).toBe('/cart');
   });
 
   it('should call onClick when provided', () => {
     const onClick = vi.fn();
-    render(<CartIcon onClick={onClick} />);
-    const link = screen.getByText('Cart(3)').closest('a');
+    renderIcon(onClick);
+    const link = screen.getByText('Cart(0)').closest('a');
     link!.click();
     expect(onClick).toHaveBeenCalled();
   });

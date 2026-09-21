@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
+  IsEnum,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -9,6 +10,7 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
+import { PaymentMethod } from '../../../prisma/generated/prisma/enums';
 
 export class CreateOrderDto {
   @IsNotEmpty()
@@ -18,6 +20,10 @@ export class CreateOrderDto {
   @IsNotEmpty()
   @IsString()
   phone: string;
+
+  @IsOptional()
+  @IsEnum(PaymentMethod)
+  paymentMethod?: PaymentMethod;
 
   @IsNotEmpty()
   @IsArray()

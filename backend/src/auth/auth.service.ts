@@ -16,6 +16,7 @@ const userSelect = {
   email: true,
   phone: true,
   image: true,
+  address: true,
   role: true,
 } as const;
 
@@ -50,6 +51,7 @@ export class AuthService {
       email: user.email,
       phone: user.phone,
       image: user.image,
+      address: user.address,
       role: user.role,
     };
   }

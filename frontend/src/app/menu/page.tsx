@@ -9,7 +9,7 @@ const MenuPage = async () => {
     categories = await getCategories();
   } catch {
     return (
-      <MenuPageSkeleton error="Unable to load the menu. Please try again later." />
+      <MenuPageSkeleton />
     );
   }
   return (

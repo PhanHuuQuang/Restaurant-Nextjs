@@ -166,7 +166,7 @@ describe('OrdersService', () => {
 
       expect(prisma.order.findMany).toHaveBeenCalledWith({
         where: { userId: 1, deletedAt: null },
-        include: expect.objectContaining({ items: true }),
+        include: expect.objectContaining({ items: { include: expect.any(Object) } }),
         orderBy: { createdAt: 'desc' },
       });
       expect(result).toEqual([mockOrder]);
@@ -225,7 +225,7 @@ describe('OrdersService', () => {
         skip: 0,
         take: 10,
         where: { deletedAt: null },
-        include: expect.objectContaining({ items: true }),
+        include: expect.objectContaining({ items: { include: expect.any(Object) } }),
         orderBy: { createdAt: 'desc' },
       });
       expect(prisma.order.count).toHaveBeenCalledWith({
@@ -246,7 +246,7 @@ describe('OrdersService', () => {
         skip: 20,
         take: 10,
         where: { deletedAt: null },
-        include: expect.objectContaining({ items: true }),
+        include: expect.objectContaining({ items: { include: expect.any(Object) } }),
         orderBy: { createdAt: 'desc' },
       });
       expect(result.meta).toEqual({
@@ -283,7 +283,7 @@ describe('OrdersService', () => {
       expect(prisma.order.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: { status: Status.PAID },
-        include: expect.objectContaining({ items: true }),
+        include: expect.objectContaining({ items: { include: expect.any(Object) } }),
       });
       expect(result).toEqual(updated);
     });

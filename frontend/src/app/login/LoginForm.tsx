@@ -33,7 +33,8 @@ const LoginForm = ({ onBack }: Props) => {
       await login();
       router.push("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      setError("Login failed, please try again!");
+      console.error(err);
     } finally {
       setLoading(false);
     }

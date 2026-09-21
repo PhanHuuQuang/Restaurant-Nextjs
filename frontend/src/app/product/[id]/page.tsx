@@ -39,6 +39,8 @@ const SingleProductPage = async ({
         <Price
           price={singleProduct.price}
           id={singleProduct.id}
+          title={singleProduct.title}
+          img={singleProduct.img}
           options={singleProduct.options ?? undefined}
         />
       </div>

@@ -19,6 +19,12 @@ enum Role {
   ADMIN
 }
 
+enum PaymentMethod {
+  CASH
+  CARD
+  WALLET
+}
+
 model Category {
   id            Int       @id @default(autoincrement())
   slug          String    @unique
@@ -94,6 +100,7 @@ model Order {
   total        Decimal   @db.Decimal(10, 2)
 
   status       Status    @default(PENDING)
+  paymentMethod PaymentMethod @default(CASH)
 
   address      String
   phone        String
